@@ -414,6 +414,150 @@ async function generateProject() {
 }
 
 // ===== プロジェクト画面 =====
+let viewMode = 'list';
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('view-btn-list').classList.toggle('active', mode === 'list');
+  document.getElementById('view-btn-calendar').classList.toggle('active', mode === 'calendar');
+  document.getElementById('list-view').style.display = mode === 'list' ? '' : 'none';
+  document.getElementById('calendar-view').style.display = mode === 'calendar' ? '' : 'none';
+  if (mode === 'calendar') renderCalendar();
+}
+
+function calMove(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const today = new Date();
+  document.getElementById('cal-nav-title').textContent =
+    `${calYear}年${calMonth + 1}月`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  const dow = ['日','月','火','水','木','金','土'];
+  let html = dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  // 前月の空白セル
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-cell other-month"><span class="cal-date">${daysInPrev - firstDay + 1 + i}</span></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === d;
+    const tasksOnDay = projectTasks.filter(t => t.deadline === dateStr);
+
+    let chips = '';
+    const MAX_CHIPS = 3;
+    tasksOnDay.slice(0, MAX_CHIPS).forEach(t => {
+      const isDone = doneSet.has(t.id);
+      chips += `<button class="cal-chip ${isDone?'done':''}" onclick="event.stopPropagation();openEditModal('${t.id}')" title="${t.name}">${t.name}</button>`;
+    });
+    if (tasksOnDay.length > MAX_CHIPS) {
+      chips += `<div class="cal-more">+${tasksOnDay.length - MAX_CHIPS} 件</div>`;
+    }
+
+    html += `<div class="cal-cell ${isToday?'today':''}" onclick="openCalDateModal('${dateStr}')">
+      <span class="cal-date">${d}</span>${chips}
+    </div>`;
+  }
+
+  // 翌月の空白セル
+  const total = firstDay + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-cell other-month"><span class="cal-date">${i}</span></div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+
+  // 期限未設定タスク
+  const unscheduled = projectTasks.filter(t => !t.deadline && !doneSet.has(t.id));
+  const unschEl = document.getElementById('cal-unscheduled');
+  if (unscheduled.length) {
+    unschEl.innerHTML = `<div class="cal-unscheduled-label">期限未設定 (${unscheduled.length}件)</div>
+      <div class="task-list">${unscheduled.map(taskHTML).join('')}</div>`;
+  } else {
+    unschEl.innerHTML = '';
+  }
+}
+
+// ===== 日付クリックモーダル =====
+let calSelectedDate = '';
+
+function openCalDateModal(dateStr) {
+  calSelectedDate = dateStr;
+  const [y, m, d] = dateStr.split('-');
+  document.getElementById('cal-date-title').textContent = `${parseInt(m)}月${parseInt(d)}日`;
+
+  const tasksOnDay = projectTasks.filter(t => t.deadline === dateStr);
+  const unscheduled = projectTasks.filter(t => !t.deadline && !doneSet.has(t.id));
+
+  let html = '';
+
+  if (tasksOnDay.length) {
+    html += `<div class="modal-label" style="margin-bottom:6px;">この日のタスク</div>`;
+    tasksOnDay.forEach(t => {
+      const isDone = doneSet.has(t.id);
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);">
+        <span style="flex:1;font-size:13px;${isDone?'text-decoration:line-through;color:var(--text3)':''}">${t.name}</span>
+        <button class="modal-btn-cancel" style="font-size:11px;padding:4px 8px;" onclick="removeDeadline('${t.id}')">期限解除</button>
+        <button class="edit-btn" onclick="closeCalDateModal();openEditModal('${t.id}')" title="編集">
+          <svg viewBox="0 0 14 14"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/><path d="M8 4l2 2"/></svg>
+        </button>
+      </div>`;
+    });
+  }
+
+  if (unscheduled.length) {
+    html += `<div class="modal-label" style="margin:${tasksOnDay.length?'14px':0} 0 6px;">この日に期限を設定するタスクを選ぶ</div>`;
+    unscheduled.forEach(t => {
+      html += `<button class="chat-opt-btn" style="margin-bottom:4px;" onclick="assignDeadline('${t.id}','${dateStr}')">
+        <span class="opt-check"></span>${t.name} <span style="margin-left:auto;font-size:11px;color:var(--text3);">${t.cat}</span>
+      </button>`;
+    });
+  }
+
+  if (!tasksOnDay.length && !unscheduled.length) {
+    html = `<div style="color:var(--text3);font-size:13px;text-align:center;padding:16px 0;">期限未設定のタスクはありません</div>`;
+  }
+
+  document.getElementById('cal-date-body').innerHTML = html;
+  document.getElementById('cal-date-overlay').classList.add('open');
+}
+
+function closeCalDateModal() {
+  document.getElementById('cal-date-overlay').classList.remove('open');
+}
+
+async function assignDeadline(taskId, dateStr) {
+  const task = projectTasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.deadline = dateStr;
+  await updateTask(taskId, { deadline: dateStr });
+  closeCalDateModal();
+  renderCalendar();
+}
+
+async function removeDeadline(taskId) {
+  const task = projectTasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.deadline = '';
+  await updateTask(taskId, { deadline: null });
+  // モーダルを更新
+  openCalDateModal(calSelectedDate);
+  renderCalendar();
+}
+
 function showProjectScreen() {
   document.getElementById('proj-title').textContent = '結婚・入籍 手続きプロジェクト';
   document.getElementById('proj-sub').textContent = `全 ${projectTasks.length} 件`;
@@ -673,6 +817,12 @@ window.saveTaskEdit = saveTaskEdit;
 window.openAIChat = openAIChat;
 window.closeAIChat = closeAIChat;
 window.sendAIMessage = sendAIMessage;
+window.setViewMode = setViewMode;
+window.calMove = calMove;
+window.openCalDateModal = openCalDateModal;
+window.closeCalDateModal = closeCalDateModal;
+window.assignDeadline = assignDeadline;
+window.removeDeadline = removeDeadline;
 
 // Enterキーで送信
 document.getElementById('ai-chat-input').addEventListener('keydown', e => {

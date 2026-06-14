@@ -262,6 +262,74 @@ body {
 }
 .modal-btn-save:hover { opacity: 0.85; }
 
+/* ===== ビュー切替 ===== */
+.view-toggle {
+  display: flex; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden;
+}
+.view-btn {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 12px; font-weight: 500; color: var(--text2);
+  padding: 5px 12px; transition: all 0.15s;
+}
+.view-btn.active { background: var(--accent); color: white; }
+
+/* ===== カレンダー ===== */
+.cal-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 0 12px;
+}
+.cal-nav-btn {
+  background: none; border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+  width: 32px; height: 32px; cursor: pointer; font-size: 18px; color: var(--text2);
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cal-nav-title { font-weight: 600; font-size: 15px; }
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.cal-dow {
+  background: var(--surface2); text-align: center;
+  font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 0;
+}
+.cal-dow:first-child { color: #c0392b; }
+.cal-dow:last-child { color: #2980b9; }
+
+.cal-cell {
+  background: var(--surface); min-height: 72px; padding: 4px;
+  border-top: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s;
+  position: relative;
+}
+.cal-cell:hover { background: var(--accent-light); }
+.cal-cell.other-month { background: var(--surface2); opacity: 0.6; cursor: default; }
+.cal-cell.other-month:hover { background: var(--surface2); }
+.cal-cell.today .cal-date { background: var(--accent); color: white; border-radius: 50%; }
+.cal-cell:nth-child(7n+1) .cal-date { color: #c0392b; }
+.cal-cell:nth-child(7n) .cal-date { color: #2980b9; }
+
+.cal-date {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; font-size: 12px; font-weight: 500; margin-bottom: 2px;
+}
+.cal-chip {
+  display: block; font-size: 10px; padding: 1px 5px;
+  border-radius: 3px; margin-bottom: 2px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+  background: var(--accent-light); color: var(--accent-dark); border: none; width: 100%;
+  text-align: left; transition: opacity 0.1s;
+}
+.cal-chip:hover { opacity: 0.75; }
+.cal-chip.done { background: var(--surface2); color: var(--text3); text-decoration: line-through; }
+.cal-more { font-size: 10px; color: var(--text3); padding: 0 2px; }
+
+.cal-unscheduled-label {
+  font-size: 12px; font-weight: 500; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin: 20px 0 8px;
+}
+
 /* ===== AIチャットボタン ===== */
 .ai-btn {
   width: 28px; height: 28px; border-radius: var(--radius-sm);
