@@ -786,6 +786,18 @@ async function saveTaskEdit() {
   renderView();
 }
 
+// ===== チュートリアル =====
+function showTutorialIfFirst() {
+  if (!localStorage.getItem('tutorial_seen')) {
+    document.getElementById('tutorial-overlay').classList.add('open');
+  }
+}
+
+function closeTutorial() {
+  localStorage.setItem('tutorial_seen', '1');
+  document.getElementById('tutorial-overlay').classList.remove('open');
+}
+
 // ===== AIアドバイザー =====
 async function openAdvisor() {
   document.getElementById('advisor-overlay').classList.add('open');
@@ -975,6 +987,7 @@ async function sendAIMessage() {
   if (projectTasks.length > 0) {
     showProjectScreen();
   }
+  showTutorialIfFirst();
 })();
 
 // 外から呼ぶ必要がある関数だけ公開
@@ -985,6 +998,7 @@ window.setFilter = setFilter;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
 window.saveTaskEdit = saveTaskEdit;
+window.closeTutorial = closeTutorial;
 window.openAdvisor = openAdvisor;
 window.closeAdvisor = closeAdvisor;
 window.saveMemoFromChat = saveMemoFromChat;

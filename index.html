@@ -108,6 +108,58 @@
   </div>
 </div>
 
+<!-- MODAL: チュートリアル（初回のみ） -->
+<div id="tutorial-overlay" class="modal-overlay">
+  <div class="modal tutorial-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🗂️ ライフチェンジ手続きナビ</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">はじめての方へ — 使い方ガイド</div>
+      </div>
+    </div>
+    <div class="tutorial-body">
+      <div class="tutorial-step">
+        <div class="tutorial-icon">💬</div>
+        <div>
+          <div class="tutorial-step-title">ステップ1：状況をヒアリング</div>
+          <div class="tutorial-step-desc">改姓・引っ越し・自動車など、あなたの状況をいくつかの質問に答えるだけで、必要な手続きを自動で一覧化します。</div>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="tutorial-icon">✅</div>
+        <div>
+          <div class="tutorial-step-title">ステップ2：タスクを管理する</div>
+          <div class="tutorial-step-desc">タスクの左の丸ボタンで完了チェック。依存関係のあるタスクは前の手続きが終わると自動でアンロックされます。</div>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="tutorial-icon">✏️ ✨</div>
+        <div>
+          <div class="tutorial-step-title">ステップ3：編集・AI質問</div>
+          <div class="tutorial-step-desc">✏️ で期限・メモ・URLを記録。✨ でそのタスクについてAIに質問でき、回答をメモに保存できます。</div>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="tutorial-icon">📅</div>
+        <div>
+          <div class="tutorial-step-title">ステップ4：カレンダーで期限管理</div>
+          <div class="tutorial-step-desc">「カレンダー」ビューに切り替えると期限を日付で確認。日付セルをクリックして期限を設定、ドラッグで別の日に移動できます。</div>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="tutorial-icon">🤖</div>
+        <div>
+          <div class="tutorial-step-title">AIアドバイス</div>
+          <div class="tutorial-step-desc">「✨ AIアドバイス」ボタンで現在の進捗を分析し、今週やるべき優先タスクを提案してもらえます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-save" style="width:100%;" onclick="closeTutorial()">はじめる →</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: AIアドバイス -->
 <div id="advisor-overlay" class="modal-overlay" onclick="closeAdvisor()">
   <div class="modal ai-chat-modal" onclick="event.stopPropagation()">

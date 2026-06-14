@@ -274,6 +274,21 @@ body {
 }
 .modal-btn-save:hover { opacity: 0.85; }
 
+/* ===== チュートリアルモーダル ===== */
+.tutorial-modal { max-width: 480px; }
+.tutorial-body { padding: 8px 20px 4px; display: flex; flex-direction: column; gap: 0; }
+.tutorial-step {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 14px 0; border-bottom: 0.5px solid var(--border);
+}
+.tutorial-step:last-child { border-bottom: none; }
+.tutorial-icon {
+  font-size: 20px; width: 36px; text-align: center; flex-shrink: 0;
+  padding-top: 1px;
+}
+.tutorial-step-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.tutorial-step-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
 /* ===== ビュー切替 ===== */
 .view-toggle {
   display: flex; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden;
