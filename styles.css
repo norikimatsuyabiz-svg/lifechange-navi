@@ -361,10 +361,10 @@ body {
 
 /* ===== ヘルプボタン ===== */
 .help-btn {
-  width: 28px; height: 28px; border-radius: 50%;
+  border-radius: var(--radius-sm); padding: 5px 10px;
   border: 0.5px solid var(--border2); background: transparent;
-  cursor: pointer; font-size: 13px; font-weight: 600;
-  color: var(--text2); transition: all 0.15s;
+  cursor: pointer; font-size: 12px; font-weight: 500;
+  color: var(--text2); transition: all 0.15s; white-space: nowrap;
 }
 .help-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
