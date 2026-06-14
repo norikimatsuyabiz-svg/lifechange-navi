@@ -1,3 +1,10 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+);
+
 (function() {
 // ===== 状態管理 =====
 let currentEvent = null;
@@ -5,26 +12,118 @@ let answers = {};
 let projectTasks = [];
 let doneSet = new Set();
 let activeFilter = 'all';
+let currentProjectId = null;  // Supabaseのprojects.id
 
-const STORAGE_KEY = 'lifechange_v1';
-
-function loadStorage() {
-  try {
-    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    if (d.event) currentEvent = d.event;
-    if (d.answers) answers = d.answers;
-    if (d.done) doneSet = new Set(d.done);
-    if (d.tasks) projectTasks = d.tasks;
-  } catch(e) {}
+// ===== Supabase操作 =====
+async function initUser() {
+  // 匿名ユーザーとしてサインイン（既存セッションがあればそのまま）
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    await supabase.auth.signInAnonymously();
+  }
 }
 
-function saveStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    event: currentEvent,
-    answers,
-    done: [...doneSet],
-    tasks: projectTasks
+async function loadProject() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: project } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!project) return;
+
+  currentProjectId = project.id;
+  currentEvent = project.event;
+  answers = project.answers;
+
+  const { data: tasks } = await supabase
+    .from('project_tasks')
+    .select('*')
+    .eq('project_id', project.id);
+
+  const { data: done } = await supabase
+    .from('project_done')
+    .select('task_id')
+    .eq('project_id', project.id);
+
+  if (tasks) {
+    projectTasks = tasks.map(t => ({
+      id: t.task_id, name: t.name, cat: t.cat, who: t.who,
+      deps: t.deps, priority: t.priority, note: t.note,
+      deadline: t.deadline, memo: t.memo, url: t.url
+    }));
+  }
+  if (done) doneSet = new Set(done.map(d => d.task_id));
+}
+
+async function saveProject() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  if (!currentProjectId) {
+    // 新規プロジェクト作成
+    const { data: project } = await supabase
+      .from('projects')
+      .insert({ user_id: user.id, event: currentEvent, answers })
+      .select()
+      .single();
+    currentProjectId = project.id;
+  } else {
+    await supabase
+      .from('projects')
+      .update({ answers })
+      .eq('id', currentProjectId);
+  }
+}
+
+async function saveAllTasks() {
+  if (!currentProjectId) return;
+  // 既存タスクを全削除して再挿入
+  await supabase.from('project_tasks').delete().eq('project_id', currentProjectId);
+  const rows = projectTasks.map(t => ({
+    project_id: currentProjectId,
+    task_id: t.id, name: t.name, cat: t.cat, who: t.who,
+    deps: t.deps, priority: t.priority, note: t.note || null,
+    deadline: t.deadline || null, memo: t.memo || null, url: t.url || null
   }));
+  if (rows.length > 0) {
+    await supabase.from('project_tasks').insert(rows);
+  }
+}
+
+async function markDone(taskId) {
+  if (!currentProjectId) return;
+  await supabase.from('project_done').upsert({
+    project_id: currentProjectId, task_id: taskId
+  });
+}
+
+async function unmarkDone(taskIds) {
+  if (!currentProjectId) return;
+  await supabase.from('project_done')
+    .delete()
+    .eq('project_id', currentProjectId)
+    .in('task_id', taskIds);
+}
+
+async function updateTask(taskId, fields) {
+  if (!currentProjectId) return;
+  await supabase.from('project_tasks')
+    .update(fields)
+    .eq('project_id', currentProjectId)
+    .eq('task_id', taskId);
+}
+
+async function resetProject() {
+  if (!currentProjectId) return;
+  // projectsを削除するとcascadeで子も消える
+  await supabase.from('projects').delete().eq('id', currentProjectId);
+  currentProjectId = null;
 }
 
 // ===== 画面切替 =====
@@ -34,10 +133,10 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
-function goWelcome() {
+async function goWelcome() {
+  await resetProject();
   currentEvent = null; answers = {}; projectTasks = []; doneSet = new Set();
   activeFilter = 'all';
-  localStorage.removeItem(STORAGE_KEY);
   showScreen('welcome');
 }
 
@@ -99,13 +198,13 @@ const MARRIAGE_QUESTIONS = [
 let chatStep = 0;
 let activeQuestions = [];
 
-function startEvent(event) {
+async function startEvent(event) {
+  await resetProject();
   currentEvent = event;
   answers = {};
   projectTasks = [];
   doneSet = new Set();
   chatStep = 0;
-  localStorage.removeItem(STORAGE_KEY);
   if (event === 'marriage') {
     activeQuestions = MARRIAGE_QUESTIONS;
   }
@@ -183,9 +282,9 @@ function renderChat() {
     const confirm = document.createElement('button');
     confirm.className = 'multi-confirm';
     confirm.textContent = '決定する →';
-    confirm.onclick = () => {
+    confirm.onclick = async () => {
       answers[q.id] = [...selected];
-      saveStorage();
+      await saveProject();
       renderChat();
     };
     div.appendChild(confirm);
@@ -194,9 +293,9 @@ function renderChat() {
       const btn = document.createElement('button');
       btn.className = 'chat-opt-btn';
       btn.innerHTML = `<span class="opt-check"></span>${opt}`;
-      btn.onclick = () => {
+      btn.onclick = async () => {
         answers[q.id] = q.keys[i];
-        saveStorage();
+        await saveProject();
         renderChat();
       };
       div.appendChild(btn);
@@ -218,7 +317,7 @@ function addMsg(container, type, text) {
 }
 
 // ===== タスク生成 =====
-function generateProject() {
+async function generateProject() {
   const a = answers;
   const tasks = [];
 
@@ -301,7 +400,8 @@ function generateProject() {
   });
 
   doneSet = new Set();
-  saveStorage();
+  await saveProject();
+  await saveAllTasks();
   showProjectScreen();
 }
 
@@ -399,7 +499,7 @@ function taskHTML(t) {
   </div>`;
 }
 
-function toggleTask(id) {
+async function toggleTask(id) {
   const task = projectTasks.find(t => t.id === id);
   if (!task) return;
   if (isBlocked(task) && !doneSet.has(id)) return;
@@ -408,13 +508,16 @@ function toggleTask(id) {
     if (dependents.length > 0) {
       const names = dependents.map(t => t.name).join('、');
       if (!confirm(`「${names}」も未完了に戻ります。よろしいですか？`)) return;
+      const depIds = dependents.map(t => t.id);
       dependents.forEach(t => doneSet.delete(t.id));
+      await unmarkDone(depIds);
     }
     doneSet.delete(id);
+    await unmarkDone([id]);
   } else {
     doneSet.add(id);
+    await markDone(id);
   }
-  saveStorage();
   renderProject();
 }
 
@@ -442,22 +545,29 @@ function closeEditModal() {
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
-function saveTaskEdit() {
+async function saveTaskEdit() {
   const task = projectTasks.find(t => t.id === editingTaskId);
   if (!task) return;
   task.deadline = document.getElementById('modal-deadline').value || '';
   task.memo = document.getElementById('modal-memo').value.trim();
   task.url = document.getElementById('modal-url').value.trim();
-  saveStorage();
+  await updateTask(editingTaskId, {
+    deadline: task.deadline || null,
+    memo: task.memo || null,
+    url: task.url || null
+  });
   closeEditModal();
   renderProject();
 }
 
 // ===== 初期化 =====
-loadStorage();
-if (projectTasks && projectTasks.length > 0) {
-  showProjectScreen();
-}
+(async () => {
+  await initUser();
+  await loadProject();
+  if (projectTasks.length > 0) {
+    showProjectScreen();
+  }
+})();
 
 // 外から呼ぶ必要がある関数だけ公開
 window.startEvent = startEvent;
