@@ -343,6 +343,24 @@ body {
   margin: 20px 0 8px;
 }
 
+/* ===== AIアドバイスボタン（ヘッダー） ===== */
+.advisor-btn {
+  background: var(--accent); color: white; border: none;
+  border-radius: var(--radius-sm); padding: 6px 12px;
+  font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.advisor-btn:hover { opacity: 0.85; }
+
+/* ===== メモ保存ボタン ===== */
+.save-memo-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 11px; color: var(--text3); padding: 3px 0 0;
+  display: block; transition: color 0.15s;
+}
+.save-memo-btn:hover:not(:disabled) { color: var(--accent); }
+.save-memo-btn:disabled { cursor: default; }
+
 /* ===== AIチャットボタン ===== */
 .ai-btn {
   width: 28px; height: 28px; border-radius: var(--radius-sm);

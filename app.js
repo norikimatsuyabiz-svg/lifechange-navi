@@ -786,6 +786,38 @@ async function saveTaskEdit() {
   renderView();
 }
 
+// ===== AIアドバイザー =====
+async function openAdvisor() {
+  document.getElementById('advisor-overlay').classList.add('open');
+  const body = document.getElementById('advisor-body');
+  body.innerHTML = '<div class="ai-msg ai"><div class="ai-msg-avatar">✨</div><div class="ai-typing">分析中...</div></div>';
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'advisor',
+        tasks: projectTasks,
+        doneIds: [...doneSet],
+        today: new Date().toISOString().slice(0, 10),
+      }),
+    });
+    const data = await res.json();
+    body.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = 'ai-msg ai';
+    div.innerHTML = `<div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble" style="white-space:pre-wrap;">${data.content || 'エラーが発生しました。'}</div>`;
+    body.appendChild(div);
+  } catch {
+    body.innerHTML = '<div class="ai-msg ai"><div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble">エラーが発生しました。</div></div>';
+  }
+}
+
+function closeAdvisor() {
+  document.getElementById('advisor-overlay').classList.remove('open');
+}
+
 // ===== AIチャット =====
 let aiChatTaskId = null;
 let aiChatMessages = [];
@@ -815,12 +847,28 @@ function appendAIMessage(role, text) {
   const div = document.createElement('div');
   div.className = `ai-msg ${role === 'user' ? 'user' : 'ai'}`;
   if (role !== 'user') {
-    div.innerHTML = `<div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble">${text}</div>`;
+    div.innerHTML = `
+      <div class="ai-msg-avatar">✨</div>
+      <div>
+        <div class="ai-msg-bubble">${text}</div>
+        <button class="save-memo-btn" onclick="saveMemoFromChat(this, ${JSON.stringify(text)})">📋 メモに保存</button>
+      </div>`;
   } else {
     div.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
   }
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
+}
+
+async function saveMemoFromChat(btn, text) {
+  const task = projectTasks.find(t => t.id === aiChatTaskId);
+  if (!task) return;
+  const current = task.memo ? task.memo + '\n\n' : '';
+  task.memo = current + text;
+  await updateTask(task.id, { memo: task.memo });
+  btn.textContent = '✓ 保存しました';
+  btn.disabled = true;
+  btn.style.color = 'var(--accent)';
 }
 
 async function sendAIMessage() {
@@ -887,6 +935,9 @@ window.setFilter = setFilter;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
 window.saveTaskEdit = saveTaskEdit;
+window.openAdvisor = openAdvisor;
+window.closeAdvisor = closeAdvisor;
+window.saveMemoFromChat = saveMemoFromChat;
 window.openAIChat = openAIChat;
 window.closeAIChat = closeAIChat;
 window.sendAIMessage = sendAIMessage;
