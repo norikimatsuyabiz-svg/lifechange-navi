@@ -173,10 +173,10 @@ const MARRIAGE_QUESTIONS = [
   },
   {
     id: 'shikaku',
-    text: '奥様が名義変更の必要な資格をお持ちであれば選んでください。（複数選択可）',
+    text: '奥様が名義変更の必要な資格をお持ちであれば選んでください。（複数選択可、なければ「なし」を選択）',
     type: 'multi',
-    options: ['医師免許', '看護師免許', '薬剤師免許', '弁護士', '税理士・公認会計士', '保育士', '教員免許', '社会保険労務士', '宅地建物取引士', 'その他'],
-    keys: ['ishi', 'kango', 'yakuzai', 'bengoshi', 'zeirishi', 'hoikushi', 'kyoin', 'sharoshi', 'takken', 'sonota'],
+    options: ['なし（資格の変更は不要）', '医師免許', '看護師免許', '薬剤師免許', '弁護士', '税理士・公認会計士', '保育士', '教員免許', '社会保険労務士', '宅地建物取引士', 'その他'],
+    keys: ['none', 'ishi', 'kango', 'yakuzai', 'bengoshi', 'zeirishi', 'hoikushi', 'kyoin', 'sharoshi', 'takken', 'sonota'],
     cond: a => a.kasei === 'yes'
   },
   {
@@ -272,6 +272,14 @@ function renderChat() {
           selected.delete(key);
           btn.classList.remove('selected');
         } else {
+          // 「なし」を選んだら他をすべて解除、他を選んだら「なし」を解除
+          if (key === 'none') {
+            selected.clear();
+            div.querySelectorAll('.chat-opt-btn').forEach(b => b.classList.remove('selected'));
+          } else {
+            selected.delete('none');
+            div.querySelector('[data-key="none"]')?.classList.remove('selected');
+          }
           selected.add(key);
           btn.classList.add('selected');
         }
@@ -350,14 +358,14 @@ async function generateProject() {
       tasks.push({ id:'passport_change', name:'パスポートの氏名変更申請', cat:'免許', who:'妻', deps:['kon','license'], priority:3 });
     }
     // 資格の名義変更タスクを生成
-    if (a.shikaku && a.shikaku.length > 0) {
+    if (a.shikaku && a.shikaku.filter(k => k !== 'none').length > 0) {
       const shikakuNames = {
         ishi: '医師免許', kango: '看護師免許', yakuzai: '薬剤師免許',
         bengoshi: '弁護士資格', zeirishi: '税理士・公認会計士資格',
         hoikushi: '保育士資格', kyoin: '教員免許', sharoshi: '社会保険労務士資格',
         takken: '宅地建物取引士資格', sonota: '資格（その他）'
       };
-      a.shikaku.forEach(key => {
+      a.shikaku.filter(k => k !== 'none').forEach(key => {
         tasks.push({
           id: 'shikaku_' + key,
           name: `${shikakuNames[key]}の氏名変更を申請する`,
