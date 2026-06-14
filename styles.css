@@ -226,7 +226,7 @@ body {
 .modal-overlay.open { display: flex; }
 .modal {
   background: var(--surface); border-radius: var(--radius);
-  border: 0.5px solid var(--border); width: 100%; max-width: 480px;
+  border: 0.5px solid var(--border); width: 100%; max-width: 560px;
   display: flex; flex-direction: column;
 }
 .modal-header {
@@ -251,9 +251,10 @@ body {
 .modal-input:focus { outline: none; border-color: var(--accent); }
 .modal-textarea {
   background: var(--surface); border: 0.5px solid var(--border2);
-  border-radius: var(--radius-sm); padding: 8px 12px;
+  border-radius: var(--radius-sm); padding: 10px 12px;
   font-size: 14px; color: var(--text); width: 100%; resize: vertical;
-  font-family: inherit; line-height: 1.6; transition: border-color 0.15s;
+  font-family: inherit; line-height: 1.8; transition: border-color 0.15s;
+  min-height: 120px;
 }
 .modal-textarea:focus { outline: none; border-color: var(--accent); }
 .modal-footer {
