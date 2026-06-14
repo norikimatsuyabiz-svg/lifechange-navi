@@ -846,16 +846,34 @@ function appendAIMessage(role, text) {
   const el = document.getElementById('ai-chat-messages');
   const div = document.createElement('div');
   div.className = `ai-msg ${role === 'user' ? 'user' : 'ai'}`;
+
   if (role !== 'user') {
-    div.innerHTML = `
-      <div class="ai-msg-avatar">✨</div>
-      <div>
-        <div class="ai-msg-bubble">${text}</div>
-        <button class="save-memo-btn" onclick="saveMemoFromChat(this, ${JSON.stringify(text)})">📋 メモに保存</button>
-      </div>`;
+    const avatar = document.createElement('div');
+    avatar.className = 'ai-msg-avatar';
+    avatar.textContent = '✨';
+
+    const wrapper = document.createElement('div');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'ai-msg-bubble';
+    bubble.textContent = text;
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'save-memo-btn';
+    saveBtn.textContent = '📋 メモに保存';
+    saveBtn.addEventListener('click', () => saveMemoFromChat(saveBtn, text));
+
+    wrapper.appendChild(bubble);
+    wrapper.appendChild(saveBtn);
+    div.appendChild(avatar);
+    div.appendChild(wrapper);
   } else {
-    div.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
+    const bubble = document.createElement('div');
+    bubble.className = 'ai-msg-bubble';
+    bubble.textContent = text;
+    div.appendChild(bubble);
   }
+
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
 }
