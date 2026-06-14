@@ -418,6 +418,15 @@ let viewMode = 'list';
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
+// 現在のビューモードに合わせて再描画
+function renderView() {
+  if (viewMode === 'calendar') {
+    renderCalendar();
+  } else {
+    renderProject();
+  }
+}
+
 function setViewMode(mode) {
   viewMode = mode;
   document.getElementById('view-btn-list').classList.toggle('active', mode === 'list');
@@ -671,7 +680,7 @@ async function toggleTask(id) {
     doneSet.add(id);
     await markDone(id);
   }
-  renderProject();
+  renderView();
 }
 
 function setFilter(f) {
@@ -710,7 +719,7 @@ async function saveTaskEdit() {
     url: task.url || null
   });
   closeEditModal();
-  renderProject();
+  renderView();
 }
 
 // ===== AIチャット =====
