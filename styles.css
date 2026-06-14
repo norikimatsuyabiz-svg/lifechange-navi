@@ -1,33 +1,33 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #fdf5f5;
+  --bg: #f9f8f6;
   --surface: #ffffff;
-  --surface2: #fceef0;
-  --text: #3b2a2a;
-  --text2: #9a7070;
-  --text3: #c4a8a8;
-  --border: rgba(180,100,100,0.12);
-  --border2: rgba(180,100,100,0.22);
-  --accent: #d4849a;
-  --accent-light: #fce8ee;
-  --accent-dark: #8b3a52;
-  --blocked: #fceef0;
-  --radius: 16px;
-  --radius-sm: 10px;
+  --surface2: #f2f1ee;
+  --text: #1a1a18;
+  --text2: #6b6b67;
+  --text3: #9e9e9a;
+  --border: rgba(0,0,0,0.1);
+  --border2: rgba(0,0,0,0.18);
+  --accent: #7B6FAB;
+  --accent-light: #EEEDFE;
+  --accent-dark: #3C3489;
+  --blocked: #f2f1ee;
+  --radius: 12px;
+  --radius-sm: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #261a1a;
-    --surface: #321f1f;
-    --surface2: #3d2828;
-    --text: #f5e8e8;
-    --text2: #c4999a;
-    --text3: #8a6060;
-    --border: rgba(255,180,180,0.1);
-    --border2: rgba(255,180,180,0.2);
-    --accent-light: #4d1f2f;
+    --bg: #1a1a18;
+    --surface: #252523;
+    --surface2: #2e2e2b;
+    --text: #f0efe8;
+    --text2: #a8a8a2;
+    --text3: #6b6b67;
+    --border: rgba(255,255,255,0.1);
+    --border2: rgba(255,255,255,0.18);
+    --accent-light: #26215C;
   }
 }
 
@@ -187,11 +187,11 @@ body {
   font-size: 11px; padding: 2px 8px; border-radius: 99px;
   font-weight: 500; white-space: nowrap;
 }
-.tag-who-本人 { background: #e8f0fb; color: #3a5a8c; }
-.tag-who-妻 { background: #fce8ee; color: #8b3a52; }
-.tag-who-二人 { background: #e8f5ef; color: #2d6e52; }
-.tag-who-配偶者 { background: #fce8ee; color: #8b3a52; }
-.tag-who-自分 { background: #e8f0fb; color: #3a5a8c; }
+.tag-who-本人 { background: #E6F1FB; color: #0C447C; }
+.tag-who-妻 { background: #FBEAF0; color: #72243E; }
+.tag-who-二人 { background: #E1F5EE; color: #085041; }
+.tag-who-配偶者 { background: #FBEAF0; color: #72243E; }
+.tag-who-自分 { background: #E6F1FB; color: #0C447C; }
 .tag-cat { background: var(--surface2); color: var(--text2); }
 .lock-icon { width: 14px; height: 14px; color: var(--text3); flex-shrink: 0; }
 
@@ -305,8 +305,8 @@ body {
   background: var(--surface2); text-align: center;
   font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 0;
 }
-.cal-dow:first-child { color: #c97b8a; }
-.cal-dow:last-child { color: #7a9bbf; }
+.cal-dow:first-child { color: #c0392b; }
+.cal-dow:last-child { color: #2980b9; }
 
 .cal-cell {
   background: var(--surface); min-height: 84px; padding: 5px;
@@ -317,8 +317,8 @@ body {
 .cal-cell.other-month { background: var(--surface2); opacity: 0.6; cursor: default; }
 .cal-cell.other-month:hover { background: var(--surface2); }
 .cal-cell.today .cal-date { background: var(--accent); color: white; border-radius: 50%; }
-.cal-cell:nth-child(7n+1) .cal-date { color: #c97b8a; }
-.cal-cell:nth-child(7n) .cal-date { color: #7a9bbf; }
+.cal-cell:nth-child(7n+1) .cal-date { color: #c0392b; }
+.cal-cell:nth-child(7n) .cal-date { color: #2980b9; }
 
 .cal-date {
   display: inline-flex; align-items: center; justify-content: center;
