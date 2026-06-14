@@ -489,8 +489,8 @@ function setViewMode(mode) {
   viewMode = mode;
   document.getElementById('view-btn-list').classList.toggle('active', mode === 'list');
   document.getElementById('view-btn-calendar').classList.toggle('active', mode === 'calendar');
-  document.getElementById('list-view').style.display = mode === 'list' ? '' : 'none';
-  document.getElementById('calendar-view').style.display = mode === 'calendar' ? '' : 'none';
+  document.getElementById('list-view').style.display = mode === 'list' ? 'block' : 'none';
+  document.getElementById('calendar-view').style.display = mode === 'calendar' ? 'block' : 'none';
   if (mode === 'calendar') renderCalendar();
 }
 
@@ -521,13 +521,13 @@ function renderCalendar() {
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === d;
-    const tasksOnDay = projectTasks.filter(t => t.deadline === dateStr);
+    const tasksOnDay = projectTasks.filter(t => t.deadline === dateStr).sort((a,b) => (a.priority||3)-(b.priority||3));
 
     let chips = '';
     const MAX_CHIPS = 3;
     tasksOnDay.slice(0, MAX_CHIPS).forEach(t => {
       const isDone = doneSet.has(t.id);
-      chips += `<button class="cal-chip ${isDone?'done':''}"
+      chips += `<button class="cal-chip ${isDone?'done':''} priority-${t.priority||3}"
         draggable="true"
         ondragstart="calDragStart(event,'${t.id}')"
         ondragend="calDragEnd(event)"
@@ -612,16 +612,19 @@ function openCalDateModal(dateStr) {
   const [y, m, d] = dateStr.split('-');
   document.getElementById('cal-date-title').textContent = `${parseInt(m)}月${parseInt(d)}日`;
 
-  const tasksOnDay = projectTasks.filter(t => t.deadline === dateStr);
+  const tasksOnDay = projectTasks.filter(t => t.deadline === dateStr).sort((a,b) => (a.priority||3)-(b.priority||3));
   const unscheduled = projectTasks.filter(t => !t.deadline && !doneSet.has(t.id));
 
+  const priorityLabel = ['','高','中','低'];
   let html = '';
 
   if (tasksOnDay.length) {
     html += `<div class="modal-label" style="margin-bottom:6px;">この日のタスク</div>`;
     tasksOnDay.forEach(t => {
       const isDone = doneSet.has(t.id);
+      const p = t.priority || 3;
       html += `<div class="cal-date-task-row">
+        <span class="cal-date-priority-badge priority-badge-${p}">${priorityLabel[p]}</span>
         <span class="cal-date-task-name ${isDone?'done':''}">${t.name}</span>
         <button class="modal-btn-cancel cal-date-task-btn-sm" onclick="removeDeadline('${t.id}')">期限解除</button>
         <button class="edit-btn" onclick="closeCalDateModal();openEditModal('${t.id}')" title="編集">
@@ -731,7 +734,14 @@ function renderProject() {
   sections.innerHTML = '';
 
   if (available.length) {
-    sections.innerHTML += `<div class="section-label">今すぐ着手できる (${available.length})</div><div class="task-list">${available.map(taskHTML).join('')}</div>`;
+    const p1 = available.filter(t => t.priority === 1);
+    const p2 = available.filter(t => t.priority === 2);
+    const p3 = available.filter(t => t.priority === 3 || !t.priority);
+    let html = `<div class="section-label">今すぐ着手できる (${available.length})</div>`;
+    if (p1.length) html += `<div class="priority-group-label priority-label-1">優先度：高</div><div class="task-list">${p1.map(taskHTML).join('')}</div>`;
+    if (p2.length) html += `<div class="priority-group-label priority-label-2">優先度：中</div><div class="task-list">${p2.map(taskHTML).join('')}</div>`;
+    if (p3.length) html += `<div class="priority-group-label priority-label-3">優先度：低</div><div class="task-list">${p3.map(taskHTML).join('')}</div>`;
+    sections.innerHTML += html;
   }
   if (blocked.length) {
     sections.innerHTML += `<div class="section-label">ブロック中 (${blocked.length})</div><div class="task-list">${blocked.map(taskHTML).join('')}</div>`;
@@ -746,8 +756,8 @@ function taskHTML(t) {
   const bl = isBlocked(t);
   const blockNames = bl ? getBlockedByNames(t) : [];
   const whoClass = 'tag-who-' + t.who;
-  const hasMeta = t.deadline || t.memo || t.url;
-  return `<div class="task-card ${bl?'blocked':''} ${checked?'done':''}">
+  const priorityClass = `priority-${t.priority || 3}`;
+  return `<div class="task-card ${bl?'blocked':''} ${checked?'done':''} ${priorityClass}">
     <button class="check-btn ${checked?'checked':''}" ${bl&&!checked?'disabled':''} onclick="toggleTask('${t.id}')" aria-label="${checked?'完了解除':'完了にする'}">
       <svg class="check-icon" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1"/></svg>
     </button>
@@ -758,6 +768,7 @@ function taskHTML(t) {
       ${t.deadline ? `<div class="task-dep-note">期限: ${t.deadline}</div>` : ''}
     </div>
     <div class="task-tags">
+      <button class="tag tag-priority priority-${t.priority || 3}" onclick="cyclePriority('${t.id}')" title="クリックで優先度変更">${['','高','中','低'][t.priority || 3]}</button>
       <span class="tag ${whoClass}">${t.who}</span>
       <span class="tag tag-cat">${t.cat}</span>
       <button class="edit-btn" onclick="openEditModal('${t.id}')" aria-label="編集">
@@ -801,6 +812,14 @@ function setFilter(f) {
   renderProject();
 }
 
+async function cyclePriority(id) {
+  const task = projectTasks.find(t => t.id === id);
+  if (!task) return;
+  task.priority = task.priority === 1 ? 2 : task.priority === 2 ? 3 : 1;
+  await updateTask(id, { priority: task.priority });
+  renderView();
+}
+
 // ===== タスク編集モーダル =====
 let editingTaskId = null;
 
@@ -812,6 +831,9 @@ function openEditModal(id) {
   document.getElementById('modal-deadline').value = task.deadline || '';
   document.getElementById('modal-memo').value = task.memo || '';
   document.getElementById('modal-url').value = task.url || '';
+  document.querySelectorAll('#modal-priority-selector .priority-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.value) === (task.priority || 3));
+  });
   document.getElementById('modal-overlay').classList.add('open');
 }
 
@@ -820,16 +842,26 @@ function closeEditModal() {
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
+async function deleteTaskFromModal() {
+  if (!editingTaskId) return;
+  const id = editingTaskId;  // closeEditModal でnullになる前に退避
+  closeEditModal();
+  await deleteTask(id);
+}
+
 async function saveTaskEdit() {
   const task = projectTasks.find(t => t.id === editingTaskId);
   if (!task) return;
   task.deadline = document.getElementById('modal-deadline').value || '';
   task.memo = document.getElementById('modal-memo').value.trim();
   task.url = document.getElementById('modal-url').value.trim();
+  const activeBtn = document.querySelector('#modal-priority-selector .priority-btn.active');
+  if (activeBtn) task.priority = Number(activeBtn.dataset.value);
   await updateTask(editingTaskId, {
     deadline: task.deadline || null,
     memo: task.memo || null,
-    url: task.url || null
+    url: task.url || null,
+    priority: task.priority
   });
   closeEditModal();
   renderView();
@@ -873,7 +905,7 @@ async function openAdvisor() {
     body.innerHTML = '';
     const div = document.createElement('div');
     div.className = 'ai-msg ai';
-    div.innerHTML = `<div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble" style="white-space:pre-wrap;">${data.content || 'エラーが発生しました。'}</div>`;
+    div.innerHTML = `<div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble">${data.content || 'エラーが発生しました。'}</div>`;
     body.appendChild(div);
   } catch {
     body.innerHTML = '<div class="ai-msg ai"><div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble">エラーが発生しました。</div></div>';
@@ -1081,6 +1113,16 @@ window.calDragEnd = calDragEnd;
 window.calDragOver = calDragOver;
 window.calDragLeave = calDragLeave;
 window.calDrop = calDrop;
+window.cyclePriority = cyclePriority;
+window.deleteTaskFromModal = deleteTaskFromModal;
+
+// 優先度セレクタのボタン切り替え
+document.querySelectorAll('#modal-priority-selector .priority-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#modal-priority-selector .priority-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
 
 // Enterキーで送信
 document.getElementById('ai-chat-input').addEventListener('keydown', e => {

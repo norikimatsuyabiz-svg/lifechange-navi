@@ -63,17 +63,17 @@
         <div class="proj-title" id="proj-title">手続きプロジェクト</div>
         <div class="proj-sub" id="proj-sub"></div>
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+      <div class="proj-header-actions">
         <div class="view-toggle">
           <button id="view-btn-list" class="view-btn active" onclick="setViewMode('list')">リスト</button>
           <button id="view-btn-calendar" class="view-btn" onclick="setViewMode('calendar')">カレンダー</button>
         </div>
         <button class="help-btn" onclick="openTutorial()">使い方</button>
         <button class="advisor-btn" onclick="openAdvisor()">✨ AIアドバイス</button>
-        <button onclick="goWelcome()" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:13px;">最初から</button>
+        <button onclick="goWelcome()" class="proj-header-back-btn">最初から</button>
       </div>
     </div>
-    <div class="proj-progress-bar"><div class="proj-progress-fill" id="proj-bar" style="width:0%"></div></div>
+    <div class="proj-progress-bar"><div class="proj-progress-fill" id="proj-bar"></div></div>
   </div>
   <div class="proj-body">
     <div class="metrics" id="metrics"></div>
@@ -83,7 +83,7 @@
       <div id="task-sections"></div>
     </div>
     <!-- カレンダービュー -->
-    <div id="calendar-view" style="display:none;">
+    <div id="calendar-view">
       <div class="cal-nav">
         <button class="cal-nav-btn" onclick="calMove(-1)">‹</button>
         <span class="cal-nav-title" id="cal-nav-title"></span>
@@ -123,28 +123,35 @@
         <div class="tutorial-icon">💬</div>
         <div>
           <div class="tutorial-step-title">ステップ1：状況をヒアリング</div>
-          <div class="tutorial-step-desc">改姓・引っ越し・自動車など、あなたの状況をいくつかの質問に答えるだけで、必要な手続きを自動で一覧化します。</div>
+          <div class="tutorial-step-desc">改姓・引っ越し・自動車など、いくつかの質問に答えるだけで必要な手続きを自動で一覧化します。約40件の手続きから あなたに必要なものだけを抽出します。</div>
         </div>
       </div>
       <div class="tutorial-step">
         <div class="tutorial-icon">✅</div>
         <div>
-          <div class="tutorial-step-title">ステップ2：タスクを管理する</div>
-          <div class="tutorial-step-desc">タスクの左の丸ボタンで完了チェック。依存関係のあるタスクは前の手続きが終わると自動でアンロックされます。</div>
+          <div class="tutorial-step-title">ステップ2：タスクを完了チェック</div>
+          <div class="tutorial-step-desc">左の丸ボタンで完了チェック。依存関係のあるタスクは前の手続きが終わると自動でアンロックされます。</div>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="tutorial-icon">🟣🟠🟢</div>
+        <div>
+          <div class="tutorial-step-title">ステップ3：優先度で整理する</div>
+          <div class="tutorial-step-desc">タスクは<b>高（紫）・中（オレンジ）・低（緑）</b>に自動分類。右端の優先度バッジをクリックすると即切り替え。✏️ ボタンから変更することもできます。</div>
         </div>
       </div>
       <div class="tutorial-step">
         <div class="tutorial-icon">✏️ ✨</div>
         <div>
-          <div class="tutorial-step-title">ステップ3：編集・AI質問</div>
-          <div class="tutorial-step-desc">✏️ で期限・メモ・URLを記録。✨ でそのタスクについてAIに質問でき、回答をメモに保存できます。</div>
+          <div class="tutorial-step-title">ステップ4：編集・AI質問</div>
+          <div class="tutorial-step-desc">✏️ で期限・メモ・URLを記録。✨ でそのタスクについてAIに質問でき、回答をそのままメモに保存できます。</div>
         </div>
       </div>
       <div class="tutorial-step">
         <div class="tutorial-icon">📅</div>
         <div>
-          <div class="tutorial-step-title">ステップ4：カレンダーで期限管理</div>
-          <div class="tutorial-step-desc">「カレンダー」ビューに切り替えると期限を日付で確認。日付セルをクリックして期限を設定、ドラッグで別の日に移動できます。</div>
+          <div class="tutorial-step-title">ステップ5：カレンダーで期限管理</div>
+          <div class="tutorial-step-desc">「カレンダー」ビューで期限を日付確認。日付セルをクリックして期限設定、ドラッグで別の日に移動。タスクの色は優先度と連動します。</div>
         </div>
       </div>
       <div class="tutorial-step">
@@ -206,6 +213,14 @@
     </div>
     <div class="modal-body">
       <div class="modal-field">
+        <label class="modal-label">優先度</label>
+        <div class="priority-selector" id="modal-priority-selector">
+          <button class="priority-btn" data-value="1">高</button>
+          <button class="priority-btn" data-value="2">中</button>
+          <button class="priority-btn" data-value="3">低</button>
+        </div>
+      </div>
+      <div class="modal-field">
         <label class="modal-label">期限</label>
         <input type="date" id="modal-deadline" class="modal-input">
       </div>
@@ -219,6 +234,7 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="modal-btn-delete" onclick="deleteTaskFromModal()">削除</button>
       <button class="modal-btn-cancel" onclick="closeEditModal()">キャンセル</button>
       <button class="modal-btn-save" onclick="saveTaskEdit()">保存する</button>
     </div>

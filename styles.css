@@ -15,6 +15,29 @@
   --blocked: #f2f1ee;
   --radius: 12px;
   --radius-sm: 8px;
+  --radius-xs: 4px;
+  --priority-1-border: #a090e0;
+  --priority-1-text: #7B6FAB;
+  --priority-1-chip-text: #c4b8ff;
+  --priority-1-bg: rgba(123,111,171,0.18);
+  --priority-2-border: #d9993c;
+  --priority-2-text: #b07826;
+  --priority-2-chip-text: #f0b86a;
+  --priority-2-bg: rgba(217,153,60,0.18);
+  --priority-3-border: #3caa78;
+  --priority-3-text: #247a52;
+  --priority-3-chip-text: #6ecfa8;
+  --priority-3-bg: rgba(60,170,120,0.18);
+  --color-sunday: #c0392b;
+  --color-saturday: #2980b9;
+  --color-danger: #c0392b;
+  --color-danger-light: #fdecea;
+  --tag-honnin-bg: #E6F1FB;
+  --tag-honnin-text: #0C447C;
+  --tag-tsuma-bg: #FBEAF0;
+  --tag-tsuma-text: #72243E;
+  --tag-futari-bg: #E1F5EE;
+  --tag-futari-text: #085041;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,6 +51,20 @@
     --border: rgba(255,255,255,0.1);
     --border2: rgba(255,255,255,0.18);
     --accent-light: #26215C;
+    --blocked: #2e2e2b;
+    --priority-1-text: #c4b8ff;
+    --priority-2-text: #f0b86a;
+    --priority-3-text: #6ecfa8;
+    --color-sunday: #e57373;
+    --color-saturday: #64b5f6;
+    --color-danger: #e07070;
+    --color-danger-light: rgba(220,60,60,0.15);
+    --tag-honnin-bg: rgba(12,68,124,0.25);
+    --tag-honnin-text: #90caf9;
+    --tag-tsuma-bg: rgba(114,36,62,0.25);
+    --tag-tsuma-text: #f48fb1;
+    --tag-futari-bg: rgba(8,80,65,0.25);
+    --tag-futari-text: #80cbc4;
   }
 }
 
@@ -132,10 +169,16 @@ body {
   position: sticky; top: 0; z-index: 10;
 }
 .proj-header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.proj-header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.proj-header-back-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); font-size: 13px;
+}
 .proj-title { font-weight: 600; font-size: 17px; }
 .proj-sub { font-size: 12px; color: var(--text2); margin-left: auto; }
 .proj-progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.proj-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s; }
+.proj-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s; width: 0; }
+#calendar-view { display: none; }
 
 .proj-body { padding: 16px 20px; flex: 1; }
 
@@ -160,8 +203,15 @@ body {
   border-radius: var(--radius-sm); padding: 10px 14px;
   display: flex; align-items: center; gap: 10px;
   transition: border-color 0.15s;
+  border-left: 3px solid transparent;
 }
+.task-card.priority-1 { border-left-color: var(--priority-1-border); }
+.task-card.priority-2 { border-left-color: var(--priority-2-border); }
+.task-card.priority-3 { border-left-color: var(--priority-3-border); }
 .task-card:not(.blocked):not(.done):hover { border-color: var(--border2); }
+.task-card.priority-1:not(.blocked):not(.done):hover { border-left-color: var(--priority-1-border); }
+.task-card.priority-2:not(.blocked):not(.done):hover { border-left-color: var(--priority-2-border); }
+.task-card.priority-3:not(.blocked):not(.done):hover { border-left-color: var(--priority-3-border); }
 .task-card.blocked { opacity: 0.5; }
 .task-card.done { opacity: 0.55; }
 .task-card.done .task-name { text-decoration: line-through; color: var(--text2); }
@@ -187,11 +237,11 @@ body {
   font-size: 11px; padding: 2px 8px; border-radius: 99px;
   font-weight: 500; white-space: nowrap;
 }
-.tag-who-本人 { background: #E6F1FB; color: #0C447C; }
-.tag-who-妻 { background: #FBEAF0; color: #72243E; }
-.tag-who-二人 { background: #E1F5EE; color: #085041; }
-.tag-who-配偶者 { background: #FBEAF0; color: #72243E; }
-.tag-who-自分 { background: #E6F1FB; color: #0C447C; }
+.tag-who-本人 { background: var(--tag-honnin-bg); color: var(--tag-honnin-text); }
+.tag-who-妻 { background: var(--tag-tsuma-bg); color: var(--tag-tsuma-text); }
+.tag-who-二人 { background: var(--tag-futari-bg); color: var(--tag-futari-text); }
+.tag-who-配偶者 { background: var(--tag-tsuma-bg); color: var(--tag-tsuma-text); }
+.tag-who-自分 { background: var(--tag-honnin-bg); color: var(--tag-honnin-text); }
 .tag-cat { background: var(--surface2); color: var(--text2); }
 .lock-icon { width: 14px; height: 14px; color: var(--text3); flex-shrink: 0; }
 
@@ -213,7 +263,7 @@ body {
   cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   color: var(--text3); transition: all 0.15s; padding: 0;
 }
-.delete-btn:hover { border-color: #c0392b; color: #c0392b; background: #fdecea; }
+.delete-btn:hover { border-color: var(--color-danger); color: var(--color-danger); background: var(--color-danger-light); }
 .delete-btn svg { width: 13px; height: 13px; }
 .delete-btn svg path { stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -321,8 +371,8 @@ body {
   background: var(--surface2); text-align: center;
   font-size: 11px; font-weight: 500; color: var(--text2); padding: 6px 0;
 }
-.cal-dow:first-child { color: #c0392b; }
-.cal-dow:last-child { color: #2980b9; }
+.cal-dow:first-child { color: var(--color-sunday); }
+.cal-dow:last-child { color: var(--color-saturday); }
 
 .cal-cell {
   background: var(--surface); min-height: 84px; padding: 5px;
@@ -333,8 +383,8 @@ body {
 .cal-cell.other-month { background: var(--surface2); opacity: 0.6; cursor: default; }
 .cal-cell.other-month:hover { background: var(--surface2); }
 .cal-cell.today .cal-date { background: var(--accent); color: white; border-radius: 50%; }
-.cal-cell:nth-child(7n+1) .cal-date { color: #c0392b; }
-.cal-cell:nth-child(7n) .cal-date { color: #2980b9; }
+.cal-cell:nth-child(7n+1) .cal-date { color: var(--color-sunday); }
+.cal-cell:nth-child(7n) .cal-date { color: var(--color-saturday); }
 
 .cal-date {
   display: inline-flex; align-items: center; justify-content: center;
@@ -342,11 +392,14 @@ body {
 }
 .cal-chip {
   display: block; font-size: 11px; font-weight: 500; padding: 3px 6px;
-  border-radius: 4px; margin-bottom: 3px; white-space: nowrap;
+  border-radius: var(--radius-xs); margin-bottom: 3px; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; cursor: pointer;
-  background: var(--accent); color: white; border: none; width: 100%;
+  border: none; width: 100%;
   text-align: left; transition: opacity 0.1s; line-height: 1.4;
 }
+.cal-chip.priority-1 { background: var(--priority-1-bg); color: var(--priority-1-chip-text); }
+.cal-chip.priority-2 { background: var(--priority-2-bg); color: var(--priority-2-chip-text); }
+.cal-chip.priority-3 { background: var(--priority-3-bg); color: var(--priority-3-chip-text); }
 .cal-chip:hover { opacity: 0.8; }
 .cal-chip.dragging { opacity: 0.4; cursor: grabbing; }
 .cal-cell.drag-over { background: var(--accent-light); outline: 2px dashed var(--accent); outline-offset: -2px; }
@@ -421,11 +474,59 @@ body {
   border-top: 0.5px solid var(--border);
 }
 
+/* ===== 優先度グループラベル ===== */
+.priority-group-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+  padding: 5px 12px; border-radius: var(--radius-sm); margin: 14px 0 6px;
+  display: inline-block; border-left: 3px solid;
+}
+.priority-label-1 { background: var(--priority-1-bg); color: var(--priority-1-chip-text); border-left-color: var(--priority-1-border); }
+.priority-label-2 { background: var(--priority-2-bg); color: var(--priority-2-chip-text); border-left-color: var(--priority-2-border); }
+.priority-label-3 { background: var(--priority-3-bg); color: var(--priority-3-chip-text); border-left-color: var(--priority-3-border); }
+
+/* ===== 優先度バッジ（タスクカード内） ===== */
+.tag-priority {
+  font-size: 12px; font-weight: 700; padding: 3px 9px;
+  border-radius: var(--radius-xs); cursor: pointer; border: none;
+  transition: opacity 0.15s; min-width: 32px; text-align: center;
+}
+.tag-priority:hover { opacity: 0.75; }
+.tag-priority.priority-1 { background: var(--priority-1-bg); color: var(--priority-1-chip-text); }
+.tag-priority.priority-2 { background: var(--priority-2-bg); color: var(--priority-2-chip-text); }
+.tag-priority.priority-3 { background: var(--priority-3-bg); color: var(--priority-3-chip-text); }
+
+/* ===== 優先度セレクタ（編集モーダル） ===== */
+.priority-selector { display: flex; gap: 8px; }
+.priority-btn {
+  flex: 1; padding: 7px 0; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.priority-btn[data-value="1"].active { background: var(--priority-1-bg); color: var(--priority-1-chip-text); border-color: var(--priority-1-border); }
+.priority-btn[data-value="2"].active { background: var(--priority-2-bg); color: var(--priority-2-chip-text); border-color: var(--priority-2-border); }
+.priority-btn[data-value="3"].active { background: var(--priority-3-bg); color: var(--priority-3-chip-text); border-color: var(--priority-3-border); }
+
+/* ===== 編集モーダル削除ボタン ===== */
+.modal-btn-delete {
+  background: none; border: 0.5px solid rgba(220,60,60,0.4);
+  border-radius: var(--radius-sm); padding: 8px 16px;
+  font-size: 13px; color: var(--color-danger); cursor: pointer; transition: all 0.15s;
+}
+.modal-btn-delete:hover { background: var(--color-danger-light); border-color: var(--color-danger); }
+
 /* ===== カレンダー日付モーダル タスク行 ===== */
 .cal-date-task-row {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 0; border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 0.5px solid var(--border);
 }
 .cal-date-task-name { flex: 1; font-size: 13px; }
 .cal-date-task-name.done { text-decoration: line-through; color: var(--text3); }
 .cal-date-task-btn-sm { font-size: 11px; padding: 4px 8px; }
+.cal-date-priority-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 7px;
+  border-radius: var(--radius-xs); flex-shrink: 0;
+}
+.priority-badge-1 { background: var(--priority-1-bg); color: var(--priority-1-chip-text); }
+.priority-badge-2 { background: var(--priority-2-bg); color: var(--priority-2-chip-text); }
+.priority-badge-3 { background: var(--priority-3-bg); color: var(--priority-3-chip-text); }
