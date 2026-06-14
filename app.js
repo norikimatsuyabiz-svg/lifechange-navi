@@ -495,6 +495,7 @@ function taskHTML(t) {
       <button class="edit-btn" onclick="openEditModal('${t.id}')" aria-label="編集">
         <svg viewBox="0 0 14 14"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/><path d="M8 4l2 2"/></svg>
       </button>
+      <button class="ai-btn" onclick="openAIChat('${t.id}')" aria-label="AIに質問する" title="AIに質問する">✨</button>
     </div>
   </div>`;
 }
@@ -560,6 +561,90 @@ async function saveTaskEdit() {
   renderProject();
 }
 
+// ===== AIチャット =====
+let aiChatTaskId = null;
+let aiChatMessages = [];
+let aiChatSending = false;
+
+function openAIChat(id) {
+  const task = projectTasks.find(t => t.id === id);
+  if (!task) return;
+  aiChatTaskId = id;
+  aiChatMessages = [];
+  document.getElementById('ai-chat-task-name').textContent = task.name;
+  document.getElementById('ai-chat-messages').innerHTML = '';
+  document.getElementById('ai-chat-input').value = '';
+  appendAIMessage('ai', `「${task.name}」について何でも聞いてください。必要書類・窓口・手順などをお答えします。`);
+  document.getElementById('ai-chat-overlay').classList.add('open');
+  document.getElementById('ai-chat-input').focus();
+}
+
+function closeAIChat() {
+  aiChatTaskId = null;
+  aiChatMessages = [];
+  document.getElementById('ai-chat-overlay').classList.remove('open');
+}
+
+function appendAIMessage(role, text) {
+  const el = document.getElementById('ai-chat-messages');
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role === 'user' ? 'user' : 'ai'}`;
+  if (role !== 'user') {
+    div.innerHTML = `<div class="ai-msg-avatar">✨</div><div class="ai-msg-bubble">${text}</div>`;
+  } else {
+    div.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
+  }
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendAIMessage() {
+  if (aiChatSending) return;
+  const input = document.getElementById('ai-chat-input');
+  const text = input.value.trim();
+  if (!text || !aiChatTaskId) return;
+
+  const task = projectTasks.find(t => t.id === aiChatTaskId);
+  if (!task) return;
+
+  aiChatMessages.push({ role: 'user', content: text });
+  appendAIMessage('user', text);
+  input.value = '';
+
+  const sendBtn = document.getElementById('ai-chat-send-btn');
+  sendBtn.disabled = true;
+  aiChatSending = true;
+
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ai-msg ai';
+  typingEl.innerHTML = '<div class="ai-msg-avatar">✨</div><div class="ai-typing">考え中...</div>';
+  document.getElementById('ai-chat-messages').appendChild(typingEl);
+  document.getElementById('ai-chat-messages').scrollTop = document.getElementById('ai-chat-messages').scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskName: task.name, taskCat: task.cat, messages: aiChatMessages }),
+    });
+    const data = await res.json();
+    typingEl.remove();
+    if (data.content) {
+      aiChatMessages.push({ role: 'assistant', content: data.content });
+      appendAIMessage('ai', data.content);
+    } else {
+      appendAIMessage('ai', 'エラーが発生しました。もう一度お試しください。');
+    }
+  } catch {
+    typingEl.remove();
+    appendAIMessage('ai', 'エラーが発生しました。もう一度お試しください。');
+  } finally {
+    sendBtn.disabled = false;
+    aiChatSending = false;
+    input.focus();
+  }
+}
+
 // ===== 初期化 =====
 (async () => {
   await initUser();
@@ -577,5 +662,13 @@ window.setFilter = setFilter;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
 window.saveTaskEdit = saveTaskEdit;
+window.openAIChat = openAIChat;
+window.closeAIChat = closeAIChat;
+window.sendAIMessage = sendAIMessage;
+
+// Enterキーで送信
+document.getElementById('ai-chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAIMessage(); }
+});
 
 })();

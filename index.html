@@ -74,6 +74,24 @@
   </div>
 </div>
 
+<!-- MODAL: AIチャット -->
+<div id="ai-chat-overlay" class="modal-overlay" onclick="closeAIChat()">
+  <div class="modal ai-chat-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="flex:1;min-width:0;">
+        <div class="modal-title" id="ai-chat-task-name"></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">✨ AI に質問する</div>
+      </div>
+      <button class="modal-close" onclick="closeAIChat()">×</button>
+    </div>
+    <div class="ai-chat-messages" id="ai-chat-messages"></div>
+    <div class="ai-chat-footer">
+      <input type="text" id="ai-chat-input" class="modal-input" placeholder="例：必要な書類を教えてください" />
+      <button class="modal-btn-save" id="ai-chat-send-btn" onclick="sendAIMessage()">送信</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: タスク編集 -->
 <div id="modal-overlay" class="modal-overlay" onclick="closeEditModal()">
   <div class="modal" onclick="event.stopPropagation()">
