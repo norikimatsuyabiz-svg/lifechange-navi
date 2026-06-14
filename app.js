@@ -24,7 +24,8 @@ async function initUser() {
 }
 
 async function loadProject() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError) { console.error('ユーザー取得エラー', userError); return; }
   if (!user) return;
 
   const { data: project } = await supabase
@@ -67,11 +68,12 @@ async function saveProject() {
 
   if (!currentProjectId) {
     // 新規プロジェクト作成
-    const { data: project } = await supabase
+    const { data: project, error: insertError } = await supabase
       .from('projects')
       .insert({ user_id: user.id, event: currentEvent, answers })
       .select()
       .single();
+    if (insertError || !project) { console.error('プロジェクト作成失敗', insertError); return; }
     currentProjectId = project.id;
   } else {
     await supabase
@@ -83,8 +85,9 @@ async function saveProject() {
 
 async function saveAllTasks() {
   if (!currentProjectId) return;
-  // 既存タスクを全削除して再挿入
-  await supabase.from('project_tasks').delete().eq('project_id', currentProjectId);
+  // 既存タスクを全削除して再挿入（削除失敗時は中断してデータ消失を防ぐ）
+  const { error: deleteError } = await supabase.from('project_tasks').delete().eq('project_id', currentProjectId);
+  if (deleteError) { console.error('タスク削除失敗', deleteError); return; }
   const rows = projectTasks.map(t => ({
     project_id: currentProjectId,
     task_id: t.id, name: t.name, cat: t.cat, who: t.who,
@@ -92,7 +95,8 @@ async function saveAllTasks() {
     deadline: t.deadline || null, memo: t.memo || null, url: t.url || null
   }));
   if (rows.length > 0) {
-    await supabase.from('project_tasks').insert(rows);
+    const { error: insertError } = await supabase.from('project_tasks').insert(rows);
+    if (insertError) { console.error('タスク保存失敗', insertError); }
   }
 }
 
@@ -346,13 +350,24 @@ async function generateProject() {
 
   tasks.push({ id:'kon', name:'婚姻届を提出する', cat:'役所', who:'二人', deps:[], priority:1 });
 
+  // 本籍地変更は常時任意で提示
+  tasks.push({ id:'honeki', name:'本籍地の変更（転籍届）を提出する', cat:'役所', who:'二人', deps:['kon'], priority:3 });
+
+  // 生命保険の受取人変更は常時推奨
+  tasks.push({ id:'hoken_uketsunin', name:'生命保険の受取人を配偶者に変更する', cat:'保険', who:'二人', deps:['kon'], priority:2, note:'結婚直後に見直し推奨' });
+
   if (a.hikkoshi === 'yes') {
-    tasks.push({ id:'tenshutssu', name:'旧住所の転出届を出す', cat:'役所', who:'二人', deps:[], priority:1 });
-    tasks.push({ id:'tennyu', name:'新住所の転入届を出す', cat:'役所', who:'二人', deps:['tenshutssu'], priority:1 });
+    tasks.push({ id:'tenshutsu', name:'旧住所の転出届を出す', cat:'役所', who:'二人', deps:[], priority:1 });
+    tasks.push({ id:'tennyu', name:'新住所の転入届を出す', cat:'役所', who:'二人', deps:['tenshutsu'], priority:1 });
     tasks.push({ id:'juminhyo', name:'住民票の写しを取得する', cat:'役所', who:'二人', deps:['tennyu'], priority:2 });
     tasks.push({ id:'utility_gas', name:'ガス・電気・水道の住所変更／契約', cat:'住居', who:'二人', deps:['tennyu'], priority:2 });
     tasks.push({ id:'utility_net', name:'インターネット回線の移転手続き', cat:'住居', who:'二人', deps:[], priority:2 });
     tasks.push({ id:'rent_refund', name:'旧居の家賃日割り返還先口座を通知', cat:'住居', who:'二人', deps:['bank_main'], priority:2 });
+    // 引っ越し時の追加タスク
+    tasks.push({ id:'yubin_tensou', name:'郵便局に転居届（転送サービス）を提出する', cat:'役所', who:'二人', deps:['tenshutsu'], priority:1, note:'旧住所宛の郵便物を新住所に1年間転送' });
+    tasks.push({ id:'nhk', name:'NHK受信料の住所変更・契約統合をする', cat:'生活', who:'二人', deps:['tennyu'], priority:3 });
+    tasks.push({ id:'shinbun', name:'新聞の住所変更または解約をする', cat:'生活', who:'二人', deps:['tennyu'], priority:3 });
+    tasks.push({ id:'furusato', name:'ふるさと納税のワンストップ特例申請書を再提出する', cat:'生活', who:'二人', deps:['tennyu'], priority:3, note:'今年度ふるさと納税をしている場合のみ' });
   } else {
     tasks.push({ id:'juminhyo', name:'住民票の写しを取得する', cat:'役所', who:'二人', deps:[], priority:2 });
   }
@@ -368,6 +383,23 @@ async function generateProject() {
     tasks.push({ id:'smartphone', name:'携帯電話の契約名義変更', cat:'カード・通信', who:'妻', deps:['kon','license'], priority:3 });
     tasks.push({ id:'hoken_kokumin', name:'健康保険証の氏名変更', cat:'保険', who:'妻', deps:['kon'], priority:2 });
     tasks.push({ id:'nenkin', name:'年金手帳・基礎年金番号の氏名変更', cat:'保険', who:'妻', deps:['kon'], priority:3 });
+    // 改姓時の追加タスク
+    tasks.push({ id:'koseki', name:'戸籍謄本（全部事項証明書）を取得する', cat:'役所', who:'二人', deps:['kon'], priority:2, note:'銀行・保険など各種名義変更で繰り返し必要' });
+    tasks.push({ id:'inkan', name:'印鑑登録を廃止・新規登録する', cat:'役所', who:'妻', deps:['kon','juminhyo'], priority:2, note:'氏名変更で旧印鑑登録証が自動失効する' });
+    tasks.push({ id:'hoken_seimei_kasei', name:'生命保険の契約者氏名を変更する', cat:'保険', who:'妻', deps:['kon','juminhyo'], priority:2 });
+    tasks.push({ id:'shoken', name:'証券口座・NISA口座の氏名変更をする', cat:'銀行・金融', who:'妻', deps:['bank_main'], priority:2, note:'NISA口座は金融機関によって手続きが異なる' });
+    tasks.push({ id:'kaisha_kasei', name:'会社に婚姻・氏名変更を届け出る（社員証・社内システム更新）', cat:'会社', who:'妻', deps:['kon'], priority:1, note:'早めに申請しないと社員証・メール等がズレる' });
+    tasks.push({ id:'koyo_hoken', name:'雇用保険被保険者証の氏名変更をする（会社経由）', cat:'会社', who:'妻', deps:['kon'], priority:2 });
+    tasks.push({ id:'gensen', name:'源泉徴収関係書類の氏名・住所変更を会社に提出する', cat:'会社', who:'妻', deps:['kon'], priority:2 });
+    tasks.push({ id:'myna_portal', name:'マイナポータルの住所・氏名情報を確認・更新する', cat:'デジタル', who:'妻', deps:['mynumber'], priority:2 });
+    tasks.push({ id:'subsuku', name:'各種サブスクリプション・SNSの氏名を変更する', cat:'デジタル', who:'妻', deps:['kon'], priority:3 });
+    tasks.push({ id:'apple_google', name:'Apple ID・Googleアカウントの氏名を変更する', cat:'デジタル', who:'妻', deps:['kon'], priority:3 });
+    tasks.push({ id:'sumaho_pay', name:'PayPay等スマホ決済の名義を確認・変更する', cat:'デジタル', who:'妻', deps:['bank_main'], priority:3 });
+    tasks.push({ id:'tsuhan', name:'宅配・通販サービス（Amazon等）の住所・氏名を変更する', cat:'生活', who:'妻', deps:['kon'], priority:3 });
+    // 定期券（改姓 or 引越しのどちらにも対応、改姓時はここで生成）
+    tasks.push({ id:'teiki', name:'通勤定期券の氏名・区間変更をする', cat:'会社', who:'二人', deps:['kon'], priority:2 });
+    // 損害保険（改姓あり）
+    tasks.push({ id:'hoken_songai', name:'損害保険（火災・地震）の名義・住所変更をする', cat:'保険', who:'二人', deps:['kon'], priority:3 });
 
     if (a.passport === 'yes') {
       tasks.push({ id:'passport_change', name:'パスポートの氏名変更申請', cat:'免許', who:'妻', deps:['kon','license'], priority:3 });
@@ -394,13 +426,24 @@ async function generateProject() {
     }
     if (a.kuruma === 'yes') {
       tasks.push({ id:'jidosha', name:'自動車の氏名・住所変更（陸運局）', cat:'免許', who:'妻', deps:['license'], priority:3, note:'車検証・ナンバー変更が必要な場合あり' });
+      // 自動車保険（kuruma=yes かつ kasei=yes）
+      tasks.push({ id:'hoken_car', name:'自動車保険の名義・住所変更をする', cat:'保険', who:'妻', deps:['jidosha'], priority:2, note:'等級・契約内容も確認' });
     }
   } else {
     if (a.hikkoshi === 'yes') {
       tasks.push({ id:'bank_main', name:'メイン銀行口座の住所変更', cat:'銀行・金融', who:'妻', deps:['juminhyo'], priority:2 });
+      // 引越しのみの場合の追加タスク（改姓なし）
+      tasks.push({ id:'hoken_songai', name:'損害保険（火災・地震）の名義・住所変更をする', cat:'保険', who:'二人', deps:['tennyu'], priority:3 });
+      tasks.push({ id:'teiki_hikkoshi', name:'通勤定期券の区間変更をする', cat:'会社', who:'二人', deps:['tennyu'], priority:2 });
+      tasks.push({ id:'tsuhan_hikkoshi', name:'宅配・通販サービスの住所を変更する', cat:'生活', who:'二人', deps:['tennyu'], priority:3 });
+      tasks.push({ id:'myna_portal', name:'マイナポータルの住所・氏名情報を確認・更新する', cat:'デジタル', who:'妻', deps:['juminhyo'], priority:2 });
     }
     if (a.kuruma === 'yes') {
       tasks.push({ id:'jidosha', name:'自動車の住所変更（陸運局）', cat:'免許', who:'二人', deps: a.hikkoshi === 'yes' ? ['tennyu'] : [], priority:3 });
+      // 自動車保険（kuruma=yes かつ hikkoshi=yes かつ kasei=no）
+      if (a.hikkoshi === 'yes') {
+        tasks.push({ id:'hoken_car', name:'自動車保険の名義・住所変更をする', cat:'保険', who:'妻', deps:['jidosha'], priority:2, note:'等級・契約内容も確認' });
+      }
     }
   }
 
@@ -578,9 +621,9 @@ function openCalDateModal(dateStr) {
     html += `<div class="modal-label" style="margin-bottom:6px;">この日のタスク</div>`;
     tasksOnDay.forEach(t => {
       const isDone = doneSet.has(t.id);
-      html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:0.5px solid var(--border);">
-        <span style="flex:1;font-size:13px;${isDone?'text-decoration:line-through;color:var(--text3)':''}">${t.name}</span>
-        <button class="modal-btn-cancel" style="font-size:11px;padding:4px 8px;" onclick="removeDeadline('${t.id}')">期限解除</button>
+      html += `<div class="cal-date-task-row">
+        <span class="cal-date-task-name ${isDone?'done':''}">${t.name}</span>
+        <button class="modal-btn-cancel cal-date-task-btn-sm" onclick="removeDeadline('${t.id}')">期限解除</button>
         <button class="edit-btn" onclick="closeCalDateModal();openEditModal('${t.id}')" title="編集">
           <svg viewBox="0 0 14 14"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/><path d="M8 4l2 2"/></svg>
         </button>
@@ -730,13 +773,19 @@ async function toggleTask(id) {
   if (!task) return;
   if (isBlocked(task) && !doneSet.has(id)) return;
   if (doneSet.has(id)) {
-    const dependents = projectTasks.filter(t => t.deps.includes(id) && doneSet.has(t.id));
-    if (dependents.length > 0) {
-      const names = dependents.map(t => t.name).join('、');
+    // 依存グラフを幅優先で辿り、完了済みの子孫タスクをすべて収集する
+    const toUnmark = [];
+    const queue = [id];
+    while (queue.length > 0) {
+      const cur = queue.shift();
+      const children = projectTasks.filter(t => t.deps.includes(cur) && doneSet.has(t.id));
+      children.forEach(t => { toUnmark.push(t.id); queue.push(t.id); });
+    }
+    if (toUnmark.length > 0) {
+      const names = toUnmark.map(tid => projectTasks.find(t => t.id === tid)?.name).filter(Boolean).join('、');
       if (!confirm(`「${names}」も未完了に戻ります。よろしいですか？`)) return;
-      const depIds = dependents.map(t => t.id);
-      dependents.forEach(t => doneSet.delete(t.id));
-      await unmarkDone(depIds);
+      toUnmark.forEach(tid => doneSet.delete(tid));
+      await unmarkDone(toUnmark);
     }
     doneSet.delete(id);
     await unmarkDone([id]);
@@ -819,6 +868,7 @@ async function openAdvisor() {
         today: new Date().toISOString().slice(0, 10),
       }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     body.innerHTML = '';
     const div = document.createElement('div');
@@ -858,47 +908,53 @@ function closeAIChat() {
   document.getElementById('ai-chat-overlay').classList.remove('open');
 }
 
-function appendAIMessage(role, text) {
+function appendUserMessage(text) {
   const el = document.getElementById('ai-chat-messages');
   const div = document.createElement('div');
-  div.className = `ai-msg ${role === 'user' ? 'user' : 'ai'}`;
+  div.className = 'ai-msg user';
+  const bubble = document.createElement('div');
+  bubble.className = 'ai-msg-bubble';
+  bubble.textContent = text;
+  div.appendChild(bubble);
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
 
-  if (role !== 'user') {
-    const avatar = document.createElement('div');
-    avatar.className = 'ai-msg-avatar';
-    avatar.textContent = '✨';
+function appendAIMessage(role, text) {
+  if (role === 'user') { appendUserMessage(text); return; }
 
-    const wrapper = document.createElement('div');
+  const el = document.getElementById('ai-chat-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai';
 
-    const bubble = document.createElement('div');
-    bubble.className = 'ai-msg-bubble';
-    bubble.textContent = text;
+  const avatar = document.createElement('div');
+  avatar.className = 'ai-msg-avatar';
+  avatar.textContent = '✨';
 
-    const btnRow = document.createElement('div');
-    btnRow.className = 'save-memo-row';
+  const wrapper = document.createElement('div');
+  const bubble = document.createElement('div');
+  bubble.className = 'ai-msg-bubble';
+  bubble.textContent = text;
 
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'save-memo-btn';
-    saveBtn.textContent = '📋 メモに保存';
-    saveBtn.addEventListener('click', () => saveMemoFromChat(saveBtn, text, btnRow));
+  const btnRow = document.createElement('div');
+  btnRow.className = 'save-memo-row';
 
-    const summarizeBtn = document.createElement('button');
-    summarizeBtn.className = 'save-memo-btn';
-    summarizeBtn.textContent = '✂️ 要約して保存';
-    summarizeBtn.addEventListener('click', () => saveSummaryFromChat(summarizeBtn, text, btnRow));
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'save-memo-btn';
+  saveBtn.textContent = '📋 メモに保存';
+  saveBtn.addEventListener('click', () => saveMemoFromChat(saveBtn, text, btnRow));
 
-    btnRow.appendChild(saveBtn);
-    btnRow.appendChild(summarizeBtn);
-    wrapper.appendChild(bubble);
-    wrapper.appendChild(btnRow);
-    div.appendChild(avatar);
-    div.appendChild(wrapper);
-  } else {
-    const bubble = document.createElement('div');
-    bubble.className = 'ai-msg-bubble';
-    bubble.textContent = text;
-    div.appendChild(bubble);
-  }
+  const summarizeBtn = document.createElement('button');
+  summarizeBtn.className = 'save-memo-btn';
+  summarizeBtn.textContent = '✂️ 要約して保存';
+  summarizeBtn.addEventListener('click', () => saveSummaryFromChat(summarizeBtn, text, btnRow));
+
+  btnRow.appendChild(saveBtn);
+  btnRow.appendChild(summarizeBtn);
+  wrapper.appendChild(bubble);
+  wrapper.appendChild(btnRow);
+  div.appendChild(avatar);
+  div.appendChild(wrapper);
 
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
@@ -925,6 +981,7 @@ async function saveSummaryFromChat(btn, text, btnRow) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: 'summarize', text }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const summary = data.content || text;
     const current = task.memo ? task.memo + '\n\n' : '';
@@ -966,6 +1023,7 @@ async function sendAIMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ taskName: task.name, taskCat: task.cat, messages: aiChatMessages }),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     typingEl.remove();
     if (data.content) {

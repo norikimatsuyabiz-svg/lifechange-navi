@@ -1,0 +1,60 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm install *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Read(*)",
+      "Edit(index.html)",
+      "Edit(app.js)",
+      "Edit(styles.css)",
+      "Edit(.claude/**/*)",
+      "Write(.claude/**/*)"
+    ],
+    "deny": [
+      "Bash(rm *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Write(.env)",
+      "Write(.env.*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const cmd=i.tool_input&&i.tool_input.command||'';if(/rm\\s+-rf/.test(cmd)){process.stdout.write(JSON.stringify({decision:'block',reason:'rm -rf は禁止されています。ファイル削除は手動で行ってください。'}));}else{process.stdout.write(JSON.stringify({decision:'approve'}));}});\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const path=i.tool_input&&i.tool_input.file_path||'';if(/\\.env$/.test(path)){process.stdout.write(JSON.stringify({decision:'block',reason:'.env ファイルへの書き込みは禁止です。接続キーは手動で管理してください。'}));}else{process.stdout.write(JSON.stringify({decision:'approve'}));}});\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const path=i.tool_input&&i.tool_input.file_path||'';if(/app\\.js$/.test(path)){const content=i.tool_input&&i.tool_input.new_string||'';const m=content.match(/console\\.log/g);if(m&&m.length>0){process.stdout.write(JSON.stringify({type:'warning',message:'app.js に console.log が '+m.length+' 件含まれています。本番前に削除してください。'}));return;}}process.stdout.write(JSON.stringify({}));});\""
+          }
+        ]
+      }
+    ]
+  }
+}
