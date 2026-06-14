@@ -298,7 +298,7 @@ body {
 .cal-dow:last-child { color: #2980b9; }
 
 .cal-cell {
-  background: var(--surface); min-height: 72px; padding: 4px;
+  background: var(--surface); min-height: 84px; padding: 5px;
   border-top: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s;
   position: relative;
 }
@@ -314,15 +314,15 @@ body {
   width: 22px; height: 22px; font-size: 12px; font-weight: 500; margin-bottom: 2px;
 }
 .cal-chip {
-  display: block; font-size: 10px; padding: 1px 5px;
-  border-radius: 3px; margin-bottom: 2px; white-space: nowrap;
+  display: block; font-size: 11px; font-weight: 500; padding: 3px 6px;
+  border-radius: 4px; margin-bottom: 3px; white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; cursor: pointer;
-  background: var(--accent-light); color: var(--accent-dark); border: none; width: 100%;
-  text-align: left; transition: opacity 0.1s;
+  background: var(--accent); color: white; border: none; width: 100%;
+  text-align: left; transition: opacity 0.1s; line-height: 1.4;
 }
-.cal-chip:hover { opacity: 0.75; }
-.cal-chip.done { background: var(--surface2); color: var(--text3); text-decoration: line-through; }
-.cal-more { font-size: 10px; color: var(--text3); padding: 0 2px; }
+.cal-chip:hover { opacity: 0.8; }
+.cal-chip.done { background: var(--surface2); color: var(--text2); text-decoration: line-through; }
+.cal-more { font-size: 11px; color: var(--text3); padding: 0 2px; }
 
 .cal-unscheduled-label {
   font-size: 12px; font-weight: 500; color: var(--text2);
