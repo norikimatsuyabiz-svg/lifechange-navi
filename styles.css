@@ -206,6 +206,17 @@ body {
 .edit-btn svg { width: 13px; height: 13px; }
 .edit-btn svg path { stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
+/* ===== 削除ボタン ===== */
+.delete-btn {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border); background: transparent;
+  cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--text3); transition: all 0.15s; padding: 0;
+}
+.delete-btn:hover { border-color: #c0392b; color: #c0392b; background: #fdecea; }
+.delete-btn svg { width: 13px; height: 13px; }
+.delete-btn svg path { stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
 /* ===== モーダル ===== */
 .modal-overlay {
   display: none; position: fixed; inset: 0;

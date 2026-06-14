@@ -119,6 +119,21 @@ async function updateTask(taskId, fields) {
     .eq('task_id', taskId);
 }
 
+async function deleteTask(taskId) {
+  if (!confirm('このタスクを削除しますか？')) return;
+  if (!currentProjectId) return;
+  await supabase.from('project_tasks').delete()
+    .eq('project_id', currentProjectId)
+    .eq('task_id', taskId);
+  await supabase.from('project_done').delete()
+    .eq('project_id', currentProjectId)
+    .eq('task_id', taskId);
+  projectTasks = projectTasks.filter(t => t.id !== taskId);
+  doneSet.delete(taskId);
+  closeCalDateModal();
+  renderView();
+}
+
 async function resetProject() {
   if (!currentProjectId) return;
   // projectsを削除するとcascadeで子も消える
@@ -563,11 +578,14 @@ function openCalDateModal(dateStr) {
     html += `<div class="modal-label" style="margin-bottom:6px;">この日のタスク</div>`;
     tasksOnDay.forEach(t => {
       const isDone = doneSet.has(t.id);
-      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);">
+      html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:0.5px solid var(--border);">
         <span style="flex:1;font-size:13px;${isDone?'text-decoration:line-through;color:var(--text3)':''}">${t.name}</span>
         <button class="modal-btn-cancel" style="font-size:11px;padding:4px 8px;" onclick="removeDeadline('${t.id}')">期限解除</button>
         <button class="edit-btn" onclick="closeCalDateModal();openEditModal('${t.id}')" title="編集">
           <svg viewBox="0 0 14 14"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/><path d="M8 4l2 2"/></svg>
+        </button>
+        <button class="delete-btn" onclick="deleteTask('${t.id}')" title="削除">
+          <svg viewBox="0 0 14 14"><path d="M2 3h10M5 3V2h4v1M6 6v4M8 6v4M3 3l1 9h6l1-9"/></svg>
         </button>
       </div>`;
     });
@@ -878,6 +896,7 @@ window.openCalDateModal = openCalDateModal;
 window.closeCalDateModal = closeCalDateModal;
 window.assignDeadline = assignDeadline;
 window.removeDeadline = removeDeadline;
+window.deleteTask = deleteTask;
 window.calDragStart = calDragStart;
 window.calDragEnd = calDragEnd;
 window.calDragOver = calDragOver;
