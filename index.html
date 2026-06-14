@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ライフチェンジ手続きナビ</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- SCREEN: WELCOME -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-icon">🗂️</div>
+  <h1 class="welcome-title">ライフチェンジ手続きナビ</h1>
+  <p class="welcome-sub">人生の節目に必要な手続きを、依存関係つきで整理します。まず、今の状況を教えてください。</p>
+  <div class="welcome-events">
+    <button class="event-btn" onclick="startEvent('marriage')">
+      <span class="ev-icon">💍</span>
+      <span class="ev-text">
+        <span class="ev-name">結婚・入籍</span>
+        <span class="ev-desc">改姓・引っ越し・各種名義変更</span>
+      </span>
+      <span class="ev-badge">対応中</span>
+    </button>
+    <button class="event-btn" onclick="alert('近日追加予定です')">
+      <span class="ev-icon">💼</span>
+      <span class="ev-text">
+        <span class="ev-name">転職・退職</span>
+        <span class="ev-desc">健康保険・年金・住民税の切替</span>
+      </span>
+      <span class="ev-badge soon">近日追加</span>
+    </button>
+    <button class="event-btn" onclick="alert('近日追加予定です')">
+      <span class="ev-icon">🏠</span>
+      <span class="ev-text">
+        <span class="ev-name">引っ越しのみ</span>
+        <span class="ev-desc">転居届・住所変更まとめ</span>
+      </span>
+      <span class="ev-badge soon">近日追加</span>
+    </button>
+  </div>
+</div>
+
+<!-- SCREEN: CHAT -->
+<div id="screen-chat" class="screen">
+  <div class="chat-header">
+    <button class="chat-back" onclick="goWelcome()">←</button>
+    <div>
+      <div class="chat-header-title" id="chat-title">状況ヒアリング</div>
+      <div class="chat-header-sub" id="chat-subtitle">結婚・入籍の手続き</div>
+    </div>
+    <div class="chat-progress" id="chat-progress"></div>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <div id="chat-options"></div>
+</div>
+
+<!-- SCREEN: PROJECT -->
+<div id="screen-project" class="screen">
+  <div class="proj-header">
+    <div class="proj-header-top">
+      <div>
+        <div class="proj-title" id="proj-title">手続きプロジェクト</div>
+        <div class="proj-sub" id="proj-sub"></div>
+      </div>
+      <button onclick="goWelcome()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text2);font-size:13px;">最初から</button>
+    </div>
+    <div class="proj-progress-bar"><div class="proj-progress-fill" id="proj-bar" style="width:0%"></div></div>
+  </div>
+  <div class="proj-body">
+    <div class="metrics" id="metrics"></div>
+    <div class="filter-row" id="filters"></div>
+    <div id="task-sections"></div>
+  </div>
+</div>
+
+<!-- MODAL: タスク編集 -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeEditModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-task-name"></div>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label class="modal-label">期限</label>
+        <input type="date" id="modal-deadline" class="modal-input">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">窓口メモ（持ち物・電話番号など）</label>
+        <textarea id="modal-memo" class="modal-textarea" rows="3" placeholder="例：戸籍謄本・印鑑・身分証明書が必要"></textarea>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">公式サイトURL</label>
+        <input type="url" id="modal-url" class="modal-input" placeholder="例：https://www.city.example.jp/...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeEditModal()">キャンセル</button>
+      <button class="modal-btn-save" onclick="saveTaskEdit()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
