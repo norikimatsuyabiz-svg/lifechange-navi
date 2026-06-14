@@ -793,6 +793,10 @@ function showTutorialIfFirst() {
   }
 }
 
+function openTutorial() {
+  document.getElementById('tutorial-overlay').classList.add('open');
+}
+
 function closeTutorial() {
   localStorage.setItem('tutorial_seen', '1');
   document.getElementById('tutorial-overlay').classList.remove('open');
@@ -998,6 +1002,7 @@ window.setFilter = setFilter;
 window.openEditModal = openEditModal;
 window.closeEditModal = closeEditModal;
 window.saveTaskEdit = saveTaskEdit;
+window.openTutorial = openTutorial;
 window.closeTutorial = closeTutorial;
 window.openAdvisor = openAdvisor;
 window.closeAdvisor = closeAdvisor;

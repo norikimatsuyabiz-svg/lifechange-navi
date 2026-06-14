@@ -359,6 +359,15 @@ body {
   margin: 20px 0 8px;
 }
 
+/* ===== ヘルプボタン ===== */
+.help-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 0.5px solid var(--border2); background: transparent;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  color: var(--text2); transition: all 0.15s;
+}
+.help-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
 /* ===== AIアドバイスボタン（ヘッダー） ===== */
 .advisor-btn {
   background: var(--accent); color: white; border: none;
