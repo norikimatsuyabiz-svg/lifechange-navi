@@ -469,13 +469,22 @@ function renderCalendar() {
     const MAX_CHIPS = 3;
     tasksOnDay.slice(0, MAX_CHIPS).forEach(t => {
       const isDone = doneSet.has(t.id);
-      chips += `<button class="cal-chip ${isDone?'done':''}" onclick="event.stopPropagation();openEditModal('${t.id}')" title="${t.name}">${t.name}</button>`;
+      chips += `<button class="cal-chip ${isDone?'done':''}"
+        draggable="true"
+        ondragstart="calDragStart(event,'${t.id}')"
+        ondragend="calDragEnd(event)"
+        onclick="event.stopPropagation();openEditModal('${t.id}')"
+        title="${t.name}">${t.name}</button>`;
     });
     if (tasksOnDay.length > MAX_CHIPS) {
       chips += `<div class="cal-more">+${tasksOnDay.length - MAX_CHIPS} 件</div>`;
     }
 
-    html += `<div class="cal-cell ${isToday?'today':''}" onclick="openCalDateModal('${dateStr}')">
+    html += `<div class="cal-cell ${isToday?'today':''}"
+      ondragover="calDragOver(event)"
+      ondragleave="calDragLeave(event)"
+      ondrop="calDrop(event,'${dateStr}')"
+      onclick="openCalDateModal('${dateStr}')">
       <span class="cal-date">${d}</span>${chips}
     </div>`;
   }
@@ -498,6 +507,43 @@ function renderCalendar() {
   } else {
     unschEl.innerHTML = '';
   }
+}
+
+// ===== カレンダー ドラッグ&ドロップ =====
+let draggingTaskId = null;
+
+function calDragStart(event, taskId) {
+  draggingTaskId = taskId;
+  event.dataTransfer.effectAllowed = 'move';
+  event.target.classList.add('dragging');
+}
+
+function calDragEnd(event) {
+  event.target.classList.remove('dragging');
+  draggingTaskId = null;
+  document.querySelectorAll('.cal-cell.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function calDragOver(event) {
+  if (!draggingTaskId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  event.currentTarget.classList.add('drag-over');
+}
+
+function calDragLeave(event) {
+  event.currentTarget.classList.remove('drag-over');
+}
+
+async function calDrop(event, dateStr) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag-over');
+  if (!draggingTaskId) return;
+  const task = projectTasks.find(t => t.id === draggingTaskId);
+  if (!task || task.deadline === dateStr) return;
+  task.deadline = dateStr;
+  await updateTask(draggingTaskId, { deadline: dateStr });
+  renderCalendar();
 }
 
 // ===== 日付クリックモーダル =====
@@ -832,6 +878,11 @@ window.openCalDateModal = openCalDateModal;
 window.closeCalDateModal = closeCalDateModal;
 window.assignDeadline = assignDeadline;
 window.removeDeadline = removeDeadline;
+window.calDragStart = calDragStart;
+window.calDragEnd = calDragEnd;
+window.calDragOver = calDragOver;
+window.calDragLeave = calDragLeave;
+window.calDrop = calDrop;
 
 // Enterキーで送信
 document.getElementById('ai-chat-input').addEventListener('keydown', e => {
