@@ -41,6 +41,21 @@ export default async function handler(req, res) {
     return res.status(200).json({ content: response.content[0].text });
   }
 
+  // 要約モード
+  if (req.body.mode === 'summarize') {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: 'Invalid request body' });
+
+    const response = await client.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 256,
+      system: '与えられたテキストを、窓口メモとして保存するために3行以内で箇条書きに要約してください。日本語で。',
+      messages: [{ role: 'user', content: text }],
+    });
+
+    return res.status(200).json({ content: response.content[0].text });
+  }
+
   // タスク個別チャットモード
   const { taskName, taskCat, messages } = req.body;
   if (!taskName || !messages || !Array.isArray(messages)) {

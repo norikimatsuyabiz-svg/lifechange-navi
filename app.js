@@ -858,13 +858,23 @@ function appendAIMessage(role, text) {
     bubble.className = 'ai-msg-bubble';
     bubble.textContent = text;
 
+    const btnRow = document.createElement('div');
+    btnRow.className = 'save-memo-row';
+
     const saveBtn = document.createElement('button');
     saveBtn.className = 'save-memo-btn';
     saveBtn.textContent = '📋 メモに保存';
-    saveBtn.addEventListener('click', () => saveMemoFromChat(saveBtn, text));
+    saveBtn.addEventListener('click', () => saveMemoFromChat(saveBtn, text, btnRow));
 
+    const summarizeBtn = document.createElement('button');
+    summarizeBtn.className = 'save-memo-btn';
+    summarizeBtn.textContent = '✂️ 要約して保存';
+    summarizeBtn.addEventListener('click', () => saveSummaryFromChat(summarizeBtn, text, btnRow));
+
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(summarizeBtn);
     wrapper.appendChild(bubble);
-    wrapper.appendChild(saveBtn);
+    wrapper.appendChild(btnRow);
     div.appendChild(avatar);
     div.appendChild(wrapper);
   } else {
@@ -878,15 +888,37 @@ function appendAIMessage(role, text) {
   el.scrollTop = el.scrollHeight;
 }
 
-async function saveMemoFromChat(btn, text) {
+async function saveMemoFromChat(btn, text, btnRow) {
   const task = projectTasks.find(t => t.id === aiChatTaskId);
   if (!task) return;
   const current = task.memo ? task.memo + '\n\n' : '';
   task.memo = current + text;
   await updateTask(task.id, { memo: task.memo });
-  btn.textContent = '✓ 保存しました';
+  btnRow.innerHTML = '<span style="font-size:11px;color:var(--accent);">✓ メモに保存しました</span>';
+}
+
+async function saveSummaryFromChat(btn, text, btnRow) {
+  const task = projectTasks.find(t => t.id === aiChatTaskId);
+  if (!task) return;
+  btn.textContent = '要約中...';
   btn.disabled = true;
-  btn.style.color = 'var(--accent)';
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'summarize', text }),
+    });
+    const data = await res.json();
+    const summary = data.content || text;
+    const current = task.memo ? task.memo + '\n\n' : '';
+    task.memo = current + summary;
+    await updateTask(task.id, { memo: task.memo });
+    btnRow.innerHTML = '<span style="font-size:11px;color:var(--accent);">✓ 要約してメモに保存しました</span>';
+  } catch {
+    btn.textContent = '✂️ 要約して保存';
+    btn.disabled = false;
+  }
 }
 
 async function sendAIMessage() {
@@ -956,6 +988,7 @@ window.saveTaskEdit = saveTaskEdit;
 window.openAdvisor = openAdvisor;
 window.closeAdvisor = closeAdvisor;
 window.saveMemoFromChat = saveMemoFromChat;
+window.saveSummaryFromChat = saveSummaryFromChat;
 window.openAIChat = openAIChat;
 window.closeAIChat = closeAIChat;
 window.sendAIMessage = sendAIMessage;

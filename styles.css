@@ -353,10 +353,11 @@ body {
 .advisor-btn:hover { opacity: 0.85; }
 
 /* ===== メモ保存ボタン ===== */
+.save-memo-row { display: flex; gap: 10px; padding-top: 4px; }
 .save-memo-btn {
   background: none; border: none; cursor: pointer;
-  font-size: 11px; color: var(--text3); padding: 3px 0 0;
-  display: block; transition: color 0.15s;
+  font-size: 11px; color: var(--text3); padding: 0;
+  transition: color 0.15s;
 }
 .save-memo-btn:hover:not(:disabled) { color: var(--accent); }
 .save-memo-btn:disabled { cursor: default; }
