@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     const userMessage = `今日は${today}です。以下が現在のタスク一覧です：\n\n${taskLines}\n\n優先してやるべきことを教えてください。`;
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     if (!text) return res.status(400).json({ error: 'Invalid request body' });
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-haiku-4-5',
       max_tokens: 256,
       system: '与えられたテキストを、窓口メモとして保存するために3行以内で箇条書きに要約してください。日本語で。',
       messages: [{ role: 'user', content: text }],
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
 回答は簡潔にまとめ、箇条書きを適宜使ってください。`;
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-8',
+    model: 'claude-sonnet-4-6',
     max_tokens: 1024,
     system: systemPrompt,
     messages,
