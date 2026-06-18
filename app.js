@@ -329,7 +329,39 @@ function renderChat() {
     });
   }
 
+  // ひとつ前の質問に戻るボタン（回答済みの質問が1つ以上あるときだけ表示）
+  if (done > 0) {
+    const backBtn = document.createElement('button');
+    backBtn.className = 'chat-back-question';
+    backBtn.textContent = '← 前の質問に戻る';
+    backBtn.onclick = goBackQuestion;
+    div.appendChild(backBtn);
+  }
+
   opts.appendChild(div);
+}
+
+// ひとつ前の質問に戻る（直近の回答を取り消して再表示する）
+function goBackQuestion() {
+  const remaining = activeQuestions.filter(q => {
+    if (answers[q.id] !== undefined) return false;
+    if (q.cond && !q.cond(answers)) return false;
+    return true;
+  });
+  const currentId = remaining[0]?.id;
+  const currentIdx = currentId
+    ? activeQuestions.findIndex(q => q.id === currentId)
+    : activeQuestions.length;
+
+  for (let i = currentIdx - 1; i >= 0; i--) {
+    const prev = activeQuestions[i];
+    if (answers[prev.id] === undefined) continue;
+    if (prev.cond && !prev.cond(answers)) continue;
+    delete answers[prev.id];
+    saveProject();
+    renderChat();
+    return;
+  }
 }
 
 function addMsg(container, type, text) {
@@ -491,7 +523,8 @@ function setViewMode(mode) {
   document.getElementById('view-btn-calendar').classList.toggle('active', mode === 'calendar');
   document.getElementById('list-view').style.display = mode === 'list' ? 'block' : 'none';
   document.getElementById('calendar-view').style.display = mode === 'calendar' ? 'block' : 'none';
-  if (mode === 'calendar') renderCalendar();
+  // 切替時に必ず再描画する（カレンダーで削除したタスクをリストにも反映するため）
+  renderView();
 }
 
 function calMove(delta) {

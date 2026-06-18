@@ -160,6 +160,12 @@ body {
   transition: opacity 0.15s;
 }
 .multi-confirm:hover { opacity: 0.85; }
+.chat-back-question {
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); font-size: 13px; padding: 8px 0 0;
+  align-self: flex-start; transition: color 0.15s;
+}
+.chat-back-question:hover { color: var(--accent); }
 
 /* ===== PROJECT ===== */
 #screen-project { padding: 0; }
