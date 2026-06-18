@@ -868,8 +868,18 @@ async function saveTaskEdit() {
 }
 
 // ===== チュートリアル =====
+// アプリ内ブラウザやプライベートモードでは localStorage がブロックされ
+// 例外を投げることがあるため、安全に読み書きするヘルパーで包む
+function safeStorageGet(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+
+function safeStorageSet(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* ストレージ不可なら無視 */ }
+}
+
 function showTutorialIfFirst() {
-  if (!localStorage.getItem('tutorial_seen')) {
+  if (!safeStorageGet('tutorial_seen')) {
     document.getElementById('tutorial-overlay').classList.add('open');
   }
 }
@@ -879,8 +889,9 @@ function openTutorial() {
 }
 
 function closeTutorial() {
-  localStorage.setItem('tutorial_seen', '1');
+  // ストレージ書き込みが失敗してもガイドは必ず閉じる（先にDOMを操作する）
   document.getElementById('tutorial-overlay').classList.remove('open');
+  safeStorageSet('tutorial_seen', '1');
 }
 
 // ===== AIアドバイザー =====
