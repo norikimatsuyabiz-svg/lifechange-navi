@@ -273,10 +273,13 @@ body {
   background: var(--surface); border-radius: var(--radius);
   border: 0.5px solid var(--border); width: 100%; max-width: 560px;
   display: flex; flex-direction: column;
+  /* 内容が長くてもフッター（保存ボタン）が隠れないよう、高さを制限して本文だけスクロールさせる */
+  max-height: 90vh;
 }
 .modal-header {
   display: flex; align-items: center; gap: 10px;
   padding: 16px 20px; border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
 }
 .modal-title { font-size: 15px; font-weight: 500; flex: 1; color: var(--text); }
 .modal-close {
@@ -284,7 +287,7 @@ body {
   font-size: 20px; color: var(--text3); line-height: 1; padding: 0 4px;
 }
 .modal-close:hover { color: var(--text); }
-.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; min-height: 0; }
 .modal-field { display: flex; flex-direction: column; gap: 6px; }
 .modal-label { font-size: 12px; font-weight: 500; color: var(--text2); }
 .modal-input {
@@ -305,6 +308,7 @@ body {
 .modal-footer {
   display: flex; justify-content: flex-end; gap: 8px;
   padding: 14px 20px; border-top: 0.5px solid var(--border);
+  flex-shrink: 0;
 }
 .modal-btn-cancel {
   background: none; border: 0.5px solid var(--border2);
@@ -321,7 +325,7 @@ body {
 
 /* ===== チュートリアルモーダル ===== */
 .tutorial-modal { max-width: 480px; }
-.tutorial-body { padding: 8px 20px 4px; display: flex; flex-direction: column; gap: 0; }
+.tutorial-body { padding: 8px 20px 4px; display: flex; flex-direction: column; gap: 0; overflow-y: auto; flex: 1; min-height: 0; }
 .tutorial-step {
   display: flex; gap: 14px; align-items: flex-start;
   padding: 14px 0; border-bottom: 0.5px solid var(--border);
@@ -565,9 +569,9 @@ body {
   .cal-date-bar { min-height: 24px; }
   .cal-date-bar:active { background: var(--accent-light); border-radius: var(--radius-xs); }
 
-  /* モーダル：画面いっぱい近くまで使い、はみ出しをスクロール */
+  /* モーダル：画面いっぱい近くまで使う。本文だけスクロールしフッターは固定 */
   .modal-overlay { padding: 12px; align-items: flex-end; }
-  .modal { max-height: 88vh; overflow-y: auto; }
+  .modal { max-height: 88vh; }
   .modal-header, .modal-footer { padding: 14px 16px; }
   .modal-body { padding: 16px; }
   .tutorial-body { padding: 4px 16px; }
