@@ -565,7 +565,9 @@ function renderCalendar() {
       ondragleave="calDragLeave(event)"
       ondrop="calDrop(event,'${dateStr}')"
       onclick="openCalDateModal('${dateStr}')">
-      <span class="cal-date">${d}</span>${chips}
+      <div class="cal-date-bar" onclick="event.stopPropagation();openCalDateModal('${dateStr}')">
+        <span class="cal-date">${d}</span>
+      </div>${chips}
     </div>`;
   }
 

@@ -381,9 +381,14 @@ body {
 .cal-cell:nth-child(7n+1) .cal-date { color: var(--color-sunday); }
 .cal-cell:nth-child(7n) .cal-date { color: var(--color-saturday); }
 
+/* 日付の数字を含む上部の帯。チップで埋まっても日付モーダルを開ける確実なタップ領域 */
+.cal-date-bar {
+  display: flex; align-items: center; width: 100%;
+  margin-bottom: 2px; cursor: pointer;
+}
 .cal-date {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; font-size: 12px; font-weight: 500; margin-bottom: 2px;
+  width: 22px; height: 22px; font-size: 12px; font-weight: 500;
 }
 .cal-chip {
   display: block; font-size: 11px; font-weight: 500; padding: 3px 6px;
@@ -552,10 +557,13 @@ body {
   .tag { font-size: 10px; padding: 2px 6px; }
 
   /* カレンダー：セルとチップを縮小 */
-  .cal-cell { min-height: 56px; padding: 3px; }
+  .cal-cell { min-height: 64px; padding: 3px; }
   .cal-date { width: 20px; height: 20px; font-size: 11px; }
   .cal-chip { font-size: 9px; padding: 1px 3px; }
   .cal-grid { gap: 1px; }
+  /* 日付の帯を全幅＋タップしやすい高さにして、チップで埋まっても日付を選べるように */
+  .cal-date-bar { min-height: 24px; }
+  .cal-date-bar:active { background: var(--accent-light); border-radius: var(--radius-xs); }
 
   /* モーダル：画面いっぱい近くまで使い、はみ出しをスクロール */
   .modal-overlay { padding: 12px; align-items: flex-end; }
