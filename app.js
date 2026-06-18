@@ -123,21 +123,6 @@ async function updateTask(taskId, fields) {
     .eq('task_id', taskId);
 }
 
-async function deleteTask(taskId) {
-  if (!confirm('このタスクを削除しますか？')) return;
-  if (!currentProjectId) return;
-  await supabase.from('project_tasks').delete()
-    .eq('project_id', currentProjectId)
-    .eq('task_id', taskId);
-  await supabase.from('project_done').delete()
-    .eq('project_id', currentProjectId)
-    .eq('task_id', taskId);
-  projectTasks = projectTasks.filter(t => t.id !== taskId);
-  doneSet.delete(taskId);
-  closeCalDateModal();
-  renderView();
-}
-
 async function resetProject() {
   if (!currentProjectId) return;
   // projectsを削除するとcascadeで子も消える
@@ -876,13 +861,6 @@ function closeEditModal() {
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
-async function deleteTaskFromModal() {
-  if (!editingTaskId) return;
-  const id = editingTaskId;  // closeEditModal でnullになる前に退避
-  closeEditModal();
-  await deleteTask(id);
-}
-
 async function saveTaskEdit() {
   const task = projectTasks.find(t => t.id === editingTaskId);
   if (!task) return;
@@ -1152,14 +1130,12 @@ window.openCalDateModal = openCalDateModal;
 window.closeCalDateModal = closeCalDateModal;
 window.assignDeadline = assignDeadline;
 window.removeDeadline = removeDeadline;
-window.deleteTask = deleteTask;
 window.calDragStart = calDragStart;
 window.calDragEnd = calDragEnd;
 window.calDragOver = calDragOver;
 window.calDragLeave = calDragLeave;
 window.calDrop = calDrop;
 window.cyclePriority = cyclePriority;
-window.deleteTaskFromModal = deleteTaskFromModal;
 
 // 優先度セレクタのボタン切り替え
 document.querySelectorAll('#modal-priority-selector .priority-btn').forEach(btn => {

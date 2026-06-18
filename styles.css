@@ -262,17 +262,6 @@ body {
 .edit-btn svg { width: 13px; height: 13px; }
 .edit-btn svg path { stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ===== 削除ボタン ===== */
-.delete-btn {
-  width: 28px; height: 28px; border-radius: var(--radius-sm);
-  border: 0.5px solid var(--border); background: transparent;
-  cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  color: var(--text3); transition: all 0.15s; padding: 0;
-}
-.delete-btn:hover { border-color: var(--color-danger); color: var(--color-danger); background: var(--color-danger-light); }
-.delete-btn svg { width: 13px; height: 13px; }
-.delete-btn svg path { stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-
 /* ===== モーダル ===== */
 .modal-overlay {
   display: none; position: fixed; inset: 0;
@@ -512,14 +501,6 @@ body {
 .priority-btn[data-value="1"].active { background: var(--priority-1-bg); color: var(--priority-1-chip-text); border-color: var(--priority-1-border); }
 .priority-btn[data-value="2"].active { background: var(--priority-2-bg); color: var(--priority-2-chip-text); border-color: var(--priority-2-border); }
 .priority-btn[data-value="3"].active { background: var(--priority-3-bg); color: var(--priority-3-chip-text); border-color: var(--priority-3-border); }
-
-/* ===== 編集モーダル削除ボタン ===== */
-.modal-btn-delete {
-  background: none; border: 0.5px solid rgba(220,60,60,0.4);
-  border-radius: var(--radius-sm); padding: 8px 16px;
-  font-size: 13px; color: var(--color-danger); cursor: pointer; transition: all 0.15s;
-}
-.modal-btn-delete:hover { background: var(--color-danger-light); border-color: var(--color-danger); }
 
 /* ===== カレンダー日付モーダル タスク行 ===== */
 .cal-date-task-row {
