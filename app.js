@@ -270,8 +270,11 @@ function renderChat() {
     }
   });
 
-  addMsg(body, 'bot', q.text);
-  body.scrollTop = body.scrollHeight;
+  const currentMsg = addMsg(body, 'bot', q.text);
+  // 回答するたびに最新の質問が見えるようスクロールする
+  requestAnimationFrame(() => {
+    currentMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 
   opts.innerHTML = '';
   const div = document.createElement('div');
@@ -373,6 +376,7 @@ function addMsg(container, type, text) {
     div.innerHTML = `<div class="msg-bubble">${text}</div>`;
   }
   container.appendChild(div);
+  return div;
 }
 
 // ===== タスク生成 =====
@@ -659,12 +663,9 @@ function openCalDateModal(dateStr) {
       html += `<div class="cal-date-task-row">
         <span class="cal-date-priority-badge priority-badge-${p}">${priorityLabel[p]}</span>
         <span class="cal-date-task-name ${isDone?'done':''}">${t.name}</span>
-        <button class="modal-btn-cancel cal-date-task-btn-sm" onclick="removeDeadline('${t.id}')">期限解除</button>
+        <button class="modal-btn-cancel cal-date-task-btn-sm" onclick="removeDeadline('${t.id}')" title="この日の期限を外す（タスクはリストに残ります）">期限解除</button>
         <button class="edit-btn" onclick="closeCalDateModal();openEditModal('${t.id}')" title="編集">
           <svg viewBox="0 0 14 14"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/><path d="M8 4l2 2"/></svg>
-        </button>
-        <button class="delete-btn" onclick="deleteTask('${t.id}')" title="削除">
-          <svg viewBox="0 0 14 14"><path d="M2 3h10M5 3V2h4v1M6 6v4M8 6v4M3 3l1 9h6l1-9"/></svg>
         </button>
       </div>`;
     });
