@@ -530,3 +530,54 @@ body {
 .priority-badge-1 { background: var(--priority-1-bg); color: var(--priority-1-chip-text); }
 .priority-badge-2 { background: var(--priority-2-bg); color: var(--priority-2-chip-text); }
 .priority-badge-3 { background: var(--priority-3-bg); color: var(--priority-3-chip-text); }
+
+/* ===== スマホ対応（幅600px以下） ===== */
+@media (max-width: 600px) {
+  body { font-size: 14px; }
+
+  /* ウェルカム画面 */
+  #screen-welcome { padding: 1.5rem 1.25rem; }
+  .welcome-title { font-size: 22px; }
+
+  /* チャット画面 */
+  .chat-body { padding: 16px 14px; }
+  .chat-options { padding: 0 14px 16px; }
+
+  /* プロジェクトヘッダー：ボタン群を折り返す */
+  .proj-header { padding: 12px 14px; }
+  .proj-header-top { flex-wrap: wrap; gap: 8px; }
+  .proj-title { font-size: 16px; }
+  .proj-header-actions {
+    width: 100%; margin-left: 0; flex-wrap: wrap; gap: 8px;
+    justify-content: flex-start;
+  }
+  .advisor-btn, .help-btn, .proj-header-back-btn, .view-btn { font-size: 12px; }
+
+  /* メトリクスを2列に */
+  .proj-body { padding: 14px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+  .metric { padding: 10px; }
+  .metric-value { font-size: 19px; }
+
+  /* タスクカード：タグ・ボタンの詰まりを緩和 */
+  .task-card { padding: 10px 12px; gap: 8px; }
+  .task-tags { gap: 4px; }
+  .tag { font-size: 10px; padding: 2px 6px; }
+
+  /* カレンダー：セルとチップを縮小 */
+  .cal-cell { min-height: 56px; padding: 3px; }
+  .cal-date { width: 20px; height: 20px; font-size: 11px; }
+  .cal-chip { font-size: 9px; padding: 1px 3px; }
+  .cal-grid { gap: 1px; }
+
+  /* モーダル：画面いっぱい近くまで使い、はみ出しをスクロール */
+  .modal-overlay { padding: 12px; align-items: flex-end; }
+  .modal { max-height: 88vh; overflow-y: auto; }
+  .modal-header, .modal-footer { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
+  .tutorial-body { padding: 4px 16px; }
+
+  /* AIチャット：高さを画面に合わせる */
+  .ai-chat-modal { height: auto; max-height: 88vh; }
+  .ai-msg-bubble { max-width: 78%; }
+}
